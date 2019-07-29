@@ -1,0 +1,4 @@
+# system catalogs
+.idea/
+# real data
+database/regressbotdb.sql
