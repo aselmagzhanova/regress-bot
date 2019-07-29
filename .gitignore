@@ -1,5 +1,6 @@
 # system catalogs
 .idea/
 app/venv/
+app/__pycache__/
 # real data
 database/regressbotdb.sql
