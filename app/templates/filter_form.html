@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Dashboard">
+    <meta name="keyword" content="Dashboard, Bootstrap, Admin, Template, Theme, Responsive, Fluid, Retina">
+    <title>REGRESS-BOT: Filter</title>
+    <!-- Favicons -->
+    <link href="../static/img/favicon.png" rel="icon">
+    <link href="../static/img/apple-touch-icon.png" rel="apple-touch-icon">
+    <!-- Bootstrap core CSS -->
+    <link href="../static/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!--external css-->
+    <link href="../static/lib/font-awesome/css/font-awesome.css" rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="../static/lib/bootstrap-datepicker/css/datepicker.css" />
+    <link rel="stylesheet" type="text/css" href="../static/lib/bootstrap-daterangepicker/daterangepicker.css" />
+    <link rel="stylesheet" type="text/css" href="../static/lib/bootstrap-timepicker/compiled/timepicker.css" />
+    <link rel="stylesheet" type="text/css" href="../static/lib/bootstrap-datetimepicker/datertimepicker.css" />
+    <!-- Custom styles for this template -->
+    <link href="../static/css/style.css" rel="stylesheet">
+    <link href="../static/css/style-responsive.css" rel="stylesheet">
+</head>
+<body>
+    <section id="container">
+        <!-- **********************************************************************************************************************************************************
+        TOP BAR CONTENT & NOTIFICATIONS
+        *********************************************************************************************************************************************************** -->
+        <!--header start-->
+        <header class="header black-bg">
+            <div class="sidebar-toggle-box">
+                <div class="fa fa-bars tooltips" data-placement="right" data-original-title="Toggle Navigation"></div>
+            </div>
+            <!--logo start-->
+            <a href="{{ url_for('create_filter') }}" class="logo">
+                <b>REGRESS<span>BOT</span></b>
+            </a>
+            <!--logo end-->
+            <div class="top-menu">
+                <ul class="nav pull-right top-menu">
+                    <li>
+                        <a class="logout" href="{{ url_for('login') }}">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </header>
+        <!--header end-->
+        <!-- **********************************************************************************************************************************************************
+        MAIN SIDEBAR MENU
+        *********************************************************************************************************************************************************** -->
+        <!--sidebar start-->
+        <aside>
+            <div id="sidebar" class="nav-collapse ">
+                <!-- sidebar menu start-->
+                <ul class="sidebar-menu" id="nav-accordion">
+                    <p class="centered">
+                        <a href="{{ url_for('user_info') }}">
+                            <img src="../static/img/useravatar.png" class="img-circle" width="80">
+                        </a>
+                    </p>
+                    <h5 class="centered">{{ user_name }}</h5>
+                    <li id="menu-button-user-info">
+                        <a href="{{ url_for('user_info') }}">
+                            <i class="fa fa-user-circle"></i>
+                            <span>User info</span>
+                        </a>
+                    </li>
+                    <li id="menu-button-regress-search">
+                        <a class="active" href="{{ url_for('create_filter') }}">
+                            <i class="fa fa-search"></i>
+                            <span>Regress search</span>
+                        </a>
+                    </li>
+                    <li id="menu-button-filters">
+                        <a href="{{ url_for('filters_list') }}">
+                            <i class="fa fa-filter"></i>
+                            <span>Filters</span>
+                        </a>
+                    </li>
+                    <li id="menu-button-jira-issues">
+                        <a href="{{ url_for('jira_issues') }}">
+                            <i class="fa fa-list-ul"></i>
+                            <span>JIRA issues</span>
+                        </a>
+                    </li>
+                    <li id="menu-button-links">
+                        <a href="{{ url_for('useful_links') }}">
+                            <i class="fa fa-question"></i>
+                            <span>Links</span>
+                        </a>
+                    </li>
+                </ul>
+                <!-- sidebar menu end-->
+            </div>
+        </aside>
+        <!--sidebar end-->
+        <!-- **********************************************************************************************************************************************************
+        MAIN CONTENT
+        *********************************************************************************************************************************************************** -->
+        <!--main content start-->
+        <section id="main-content">
+            <section class="wrapper">
+                <h3>
+                    <i class="fa fa-angle-right"></i>
+                    Create filter
+                </h3>
+                <!-- FILTER FORM ELEMENTS -->
+                <div class="row mt">
+                    <div class="col-lg-12">
+                        <div class="form-panel">
+                            <form class="form-horizontal style-form" action="/search" method="post">
+                                <div class="form-group">
+                                    <label class="col-sm-2 col-sm-2 control-label">
+                                        Stand
+                                    </label>
+                                    <!--{# for stand in stands #}
+                                        <label class="checkbox-inline">
+                                            <input name="checkbox-stand" type="checkbox" id="inlineCheckbox{# stand #}" value="{# stand|lower #}"> {# stand #}
+                                        </label>
+                                    {# endfor #}-->
+                                    <label class="checkbox-inline">
+                                            <input name="checkbox-stand" type="checkbox" id="inlineCheckboxkpak" value="kpak"> kpak
+                                    </label>
+                                    <label class="checkbox-inline">
+                                            <input name="checkbox-stand" type="checkbox" id="inlineCheckboxft" value="ft"> ft
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 col-sm-2 control-label">
+                                        Database
+                                    </label>
+                                    {% for database in pg_databases %}
+                                        <label class="checkbox-inline">
+                                            <input name="checkbox-database" type="checkbox" id="inlineCheckbox{{ database }}" value="{{ database }}"> {{ database }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 col-sm-2 control-label">
+                                        Subsystem (hm only)
+                                    </label>
+                                    {% for subsystem in pg_subsystems %}
+                                        <label class="checkbox-inline">
+                                            <input name="checkbox-subsystem" type="checkbox" id="inlineCheckbox{{ subsystem }}" value="{{ subsystem }}"> hm {{ subsystem }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 col-sm-2 control-label">
+                                        Duration from
+                                    </label>
+                                    <div class="col-sm-10">
+                                        <input id="form-select-duration" type="text" class="form-control" name="duration" placeholder="ms">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Time range</label>
+                                    <div class="col-md-4">
+                                        <div class="input-group input-large" data-date="01/01/2019" data-date-format="mm/dd/yyyy">
+                                            <input type="text" class="form-control dpd1" name="time-from">
+                                            <span class="input-group-addon">To</span>
+                                            <input type="text" class="form-control dpd2" name="time-to">
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Search button -->
+                                <a href="{{ url_for('search_result') }}">
+                                    <button name="button-search" value="button-search" id="button-search" type="submit" class="btn btn-theme04" style="margin-left: 10px">
+                                        Search
+                                    </button>
+                                </a>
+                                <div class="form-group">
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 col-sm-2 control-label">
+                                        <button name="button-save-filter" value="button-save-filter" id="button-save-filter" type="submit" class="btn btn-theme" style="margin-left: 10px" formnovalidate>
+                                            Save filter
+                                        </button>
+                                    </label>
+                                    <div class="col-sm-10">
+                                        <input id="filter-name" type="text" class="form-control" name="filter-name" placeholder="Enter filter name if required (default filter_n)">
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <!-- col-lg-12-->
+                </div>
+            </section>
+        </section>
+    </section>
+    <!-- /row -->
+    <!-- js placed at the end of the document so the pages load faster -->
+    <script src="../static/lib/jquery/jquery.min.js"></script>
+    <script src="../static/lib/bootstrap/js/bootstrap.min.js"></script>
+    <script class="include" type="text/javascript" src="../static/lib/jquery.dcjqaccordion.2.7.js"></script>
+    <script src="../static/lib/jquery.scrollTo.min.js"></script>
+    <script src="../static/lib/jquery.nicescroll.js" type="text/javascript"></script>
+    <!--common script for all pages-->
+    <script src="../static/lib/common-scripts.js"></script>
+    <!--script for this page-->
+    <script src="../static/lib/jquery-ui-1.9.2.custom.min.js"></script>
+    <!--custom switch-->
+    <script src="../static/lib/bootstrap-switch.js"></script>
+    <!--custom tagsinput-->
+    <script src="../static/lib/jquery.tagsinput.js"></script>
+    <!--custom checkbox & radio-->
+    <script src="../static/lib/form-component.js"></script>
+    <script type="text/javascript" src="../static/lib/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+    <script type="text/javascript" src="../static/lib/bootstrap-daterangepicker/date.js"></script>
+    <script type="text/javascript" src="../static/lib/bootstrap-daterangepicker/daterangepicker.js"></script>
+    <script type="text/javascript" src="../static/lib/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js"></script>
+    <script type="text/javascript" src="../static/lib/bootstrap-daterangepicker/moment.min.js"></script>
+    <script type="text/javascript" src="../static/lib/bootstrap-timepicker/js/bootstrap-timepicker.js"></script>
+    <script src="../static/lib/advanced-form-components.js"></script>
+</body>
+</html>

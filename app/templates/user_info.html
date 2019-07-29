@@ -1,0 +1,150 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Dashboard">
+    <meta name="keyword" content="Dashboard, Bootstrap, Admin, Template, Theme, Responsive, Fluid, Retina">
+    <title>REGRESS-BOT: User info</title>
+    <!-- Favicons -->
+    <link href="../static/img/favicon.png" rel="icon">
+    <link href="../static/img/apple-touch-icon.png" rel="apple-touch-icon">
+    <!-- Bootstrap core CSS -->
+    <link href="../static/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!--external css-->
+    <link href="../static/lib/font-awesome/css/font-awesome.css" rel="stylesheet" />
+    <!-- Custom styles for this template -->
+    <link href="../static/css/style.css" rel="stylesheet">
+    <link href="../static/css/style-responsive.css" rel="stylesheet">
+</head>
+
+<body>
+    <section id="container">
+        <!-- **********************************************************************************************************************************************************
+        TOP BAR CONTENT & NOTIFICATIONS
+        *********************************************************************************************************************************************************** -->
+        <!--header start-->
+        <header class="header black-bg">
+            <div class="sidebar-toggle-box">
+                <div class="fa fa-bars tooltips" data-placement="right" data-original-title="Toggle Navigation"></div>
+            </div>
+            <!--logo start-->
+            <a href="{{ url_for('create_filter') }}" class="logo">
+                <b>REGRESS<span>BOT</span></b>
+            </a>
+            <!--logo end-->
+            <div class="top-menu">
+                <ul class="nav pull-right top-menu">
+                    <li>
+                        <a class="logout" href="{{ url_for('login') }}">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </header>
+        <!--header end-->
+        <!-- **********************************************************************************************************************************************************
+        MAIN SIDEBAR MENU
+        *********************************************************************************************************************************************************** -->
+        <!--sidebar start-->
+        <aside>
+            <div id="sidebar" class="nav-collapse ">
+                <!-- sidebar menu start-->
+                <ul class="sidebar-menu" id="nav-accordion">
+                    <p class="centered">
+                        <a href="{{ url_for('user_info') }}">
+                            <img src="../static/img/useravatar.png" class="img-circle" width="80">
+                        </a>
+                    </p>
+                    <h5 class="centered">{{ user_name }}</h5>
+                    <li id="menu-button-user-info">
+                        <a class="active" href="{{ url_for('user_info') }}">
+                            <i class="fa fa-user-circle"></i>
+                            <span>User info</span>
+                        </a>
+                    </li>
+                    <li id="menu-button-regress-search">
+                        <a href="{{ url_for('create_filter') }}">
+                            <i class="fa fa-search"></i>
+                            <span>Regress search</span>
+                        </a>
+                    </li>
+                    <li id="menu-button-filters">
+                        <a href="{{ url_for('filters_list') }}">
+                            <i class="fa fa-filter"></i>
+                            <span>Filters</span>
+                        </a>
+                    </li>
+                    <li id="menu-button-jira-issues">
+                        <a href="{{ url_for('jira_issues') }}">
+                            <i class="fa fa-list-ul"></i>
+                            <span>JIRA issues</span>
+                        </a>
+                    </li>
+                    <li id="menu-button-links">
+                        <a href="{{ url_for('useful_links') }}">
+                            <i class="fa fa-question"></i>
+                            <span>Links</span>
+                        </a>
+                    </li>
+                </ul>
+                <!-- sidebar menu end-->
+            </div>
+        </aside>
+        <!--sidebar end-->
+        <!-- **********************************************************************************************************************************************************
+        MAIN CONTENT
+        *********************************************************************************************************************************************************** -->
+        <!--main content start-->
+        <section id="main-content">
+            <section class="wrapper">
+                <h3>
+                    <i class="fa fa-angle-right"></i>
+                    User info
+                </h3>
+                <h4>user: <a style="color: #4ecdc4">{{ user_name }}</a></h4>
+                <h4>login: <a style="color: #4ecdc4">{{ user_login }}</a></h4>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="content-panel">
+                            <hr>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 115px">TEAM NUMBER</th>
+                                        <th>DATABASE</th>
+                                        <th>SUBSYSTEM</th>
+                                        <th>ROLE</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for row in data %}
+                                        <tr>
+                                            <td>{{row[0]}}</td>
+                                            <td>{{row[1]}}</td>
+                                            <td>{{row[2]}}</td>
+                                            <td>{{row[3]}}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- /col-md-12 -->
+                </div>
+            </section>
+        </section>
+        <!-- /MAIN CONTENT -->
+        <!--main content end-->
+    </section>
+    <!-- js placed at the end of the document so the pages load faster -->
+    <script src="../static/lib/jquery/jquery.min.js"></script>
+    <script src="../static/lib/bootstrap/js/bootstrap.min.js"></script>
+    <script class="include" type="text/javascript" src="../static/lib/jquery.dcjqaccordion.2.7.js"></script>
+    <script src="../static/lib/jquery.scrollTo.min.js"></script>
+    <script src="../static/lib/jquery.nicescroll.js" type="text/javascript"></script>
+    <!--common script for all pages-->
+    <script src="../static/lib/common-scripts.js"></script>
+    <!--script for this page-->
+</body>
+</html>

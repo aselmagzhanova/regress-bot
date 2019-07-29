@@ -1,0 +1,222 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Dashboard">
+    <meta name="keyword" content="Dashboard, Bootstrap, Admin, Template, Theme, Responsive, Fluid, Retina">
+    <title>REGRESS-BOT: JIRA issues</title>
+    <!-- Favicons -->
+    <link href="../static/img/favicon.png" rel="icon">
+    <link href="../static/img/apple-touch-icon.png" rel="apple-touch-icon">
+    <!-- Bootstrap core CSS -->
+    <link href="../static/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!--external css-->
+    <link href="../static/lib/font-awesome/css/font-awesome.css" rel="stylesheet" />
+    <!-- Custom styles for this template -->
+    <link href="../static/css/style.css" rel="stylesheet">
+    <link href="../static/css/style-responsive.css" rel="stylesheet">
+    <link href="../static/css/table-responsive.css" rel="stylesheet">
+</head>
+<body>
+    <section id="container">
+        <!-- **********************************************************************************************************************************************************
+        TOP BAR CONTENT & NOTIFICATIONS
+        *********************************************************************************************************************************************************** -->
+        <!--header start-->
+        <header class="header black-bg">
+            <div class="sidebar-toggle-box">
+                <div class="fa fa-bars tooltips" data-placement="right" data-original-title="Toggle Navigation"></div>
+            </div>
+            <!--logo start-->
+            <a href="{{ url_for('create_filter') }}" class="logo">
+                <b>REGRESS<span>BOT</span></b>
+            </a>
+            <!--logo end-->
+            <div class="top-menu">
+                <ul class="nav pull-right top-menu">
+                    <li>
+                        <a class="logout" href="{{ url_for('login') }}">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </header>
+        <!--header end-->
+        <!-- **********************************************************************************************************************************************************
+        MAIN SIDEBAR MENU
+        *********************************************************************************************************************************************************** -->
+        <!--sidebar start-->
+        <aside>
+            <div id="sidebar" class="nav-collapse ">
+                <!-- sidebar menu start-->
+                <ul class="sidebar-menu" id="nav-accordion">
+                    <p class="centered">
+                        <a href="{{ url_for('user_info') }}">
+                            <img src="../static/img/useravatar.png" class="img-circle" width="80">
+                        </a>
+                    </p>
+                    <h5 class="centered">{{ user_name }}</h5>
+                    <li id="menu-button-user-info">
+                        <a href="{{ url_for('user_info') }}">
+                            <i class="fa fa-user-circle"></i>
+                            <span>User info</span>
+                        </a>
+                    </li>
+                    <li id="menu-button-regress-search">
+                        <a href="{{ url_for('create_filter') }}">
+                            <i class="fa fa-search"></i>
+                            <span>Regress search</span>
+                        </a>
+                    </li>
+                    <li id="menu-button-filters">
+                        <a href="{{ url_for('filters_list') }}">
+                            <i class="fa fa-filter"></i>
+                            <span>Filters</span>
+                        </a>
+                    </li>
+                    <li id="menu-button-jira-issues">
+                        <a class="active" href="{{ url_for('jira_issues') }}">
+                            <i class="fa fa-list-ul"></i>
+                            <span>JIRA issues</span>
+                        </a>
+                    </li>
+                    <li id="menu-button-links">
+                        <a href="{{ url_for('useful_links') }}">
+                            <i class="fa fa-question"></i>
+                            <span>Links</span>
+                        </a>
+                    </li>
+                </ul>
+                <!-- sidebar menu end-->
+            </div>
+        </aside>
+        <!--sidebar end-->
+        <!-- **********************************************************************************************************************************************************
+        MAIN CONTENT
+        *********************************************************************************************************************************************************** -->
+        <!--main content start-->
+        <section id="main-content">
+            <section class="wrapper">
+                <div class="form-group" style="margin-top: 25px; margin-bottom: 85px">
+                    <label class="col-sm-2 col-sm-2 control-label">
+                        Search by issues:
+                    </label>
+                    <div class="col-sm-10">
+                        <input id="input-key-words" type="text" class="form-control">
+                    </div>
+                </div>
+                <a href="{{ url_for('jira_issues') }}">
+                    <button id="button-search" type="button" class="btn btn-theme" style="margin-left: 10px">
+                        Search
+                    </button>
+                </a>
+                <!-- Button How-to trigger modal -->
+                <button class="btn btn-theme02" data-toggle="modal" data-target="#myModal">
+                    How to search correctly?
+                </button>
+                <!-- Modal -->
+                <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                <h4 class="modal-title" id="myModalLabel"> JIRA issues search guide</h4>
+                            </div>
+                            <div class="modal-body">
+                                By default, the search is in the field "query".<br>
+                                To filter out by other field, specify it explicitly.<br>
+                                By the "duration" field will be selected all rows, where duration is equal or greater than a parameter.<br>
+                                For example:<br>
+                                &nbsp;&nbsp;stand:kpak<br>
+                                &nbsp;&nbsp;database:hm<br>
+                                &nbsp;&nbsp;stand:ft duration:3000<br>
+                                &nbsp;&nbsp;stand:kpak database:eb status:unresolved
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" data-dismiss="modal">
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <h3>
+                    <i class="fa fa-angle-right"></i>
+                    JIRA issues
+                </h3>
+                <div class="row mt">
+                    <div class="col-lg-12">
+                        <div class="content-panel">
+                            <section id="unseen">
+                                <table class="table table-bordered table-striped table-condensed">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 65px">STAND</th>
+                                            <th style="width: 100px">DATABASE</th>
+                                            <th style="width: 100px">SUBSYSTEM</th>
+                                            <th style="width: 650px">QUERY</th>
+                                            <th class="numeric" style="width: 125px">DURATION (ms)</th>
+                                            <th>JIRA LINK</th>
+                                            <th>STATUS</th>
+                                            <th>DATE</th>
+                                            <th>ACTION</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for row in jira_issues %}
+                                        <tr>
+                                            <td>{{ row[0] }}</td>
+                                            <td>{{ row[1] }}</td>
+                                            <td>{{ row[2] }}</td>
+                                            <td>{{ row[3] }}</td>
+                                            <td>{{ row[4] }}</td>
+                                            <td><a href="https://hcs.jira.lanit.ru/browse/{{ row[5] }}" target="_blank">{{ row[5] }}</a></td>
+                                            <td><span class="label label-success">Fixed TEST</span></td>
+                                            <td>21.03.2019 test</td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <button type="button" class="btn btn-theme dropdown-toggle" data-toggle="dropdown">
+                                                        Action
+                                                        <span class="caret"></span>
+                                                    </button>
+                                                    <ul class="dropdown-menu" role="menu">
+                                                        <li><a href="#">Reopen</a></li>
+                                                        <li><a href="#">Create new task</a></li>
+                                                    </ul>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </section>
+                        </div>
+                        <!-- /content-panel -->
+                    </div>
+                    <!-- /col-lg-4 -->
+                </div>
+                <!-- /row -->
+                <div class="row mt">
+                    <div class="col-lg-12">
+                    </div>
+                     <!-- /col-lg-12 -->
+                </div>
+                <!-- /row -->
+            </section>
+            <!-- /wrapper -->
+        </section>
+        <!-- /MAIN CONTENT -->
+        <!--main content end-->
+    </section>
+    <!-- js placed at the end of the document so the pages load faster -->
+    <script src="../static/lib/jquery/jquery.min.js"></script>
+    <script src="../static/lib/bootstrap/js/bootstrap.min.js"></script>
+    <script class="include" type="text/javascript" src="../static/lib/jquery.dcjqaccordion.2.7.js"></script>
+    <script src="../static/lib/jquery.scrollTo.min.js"></script>
+    <script src="../static/lib/jquery.nicescroll.js" type="text/javascript"></script>
+    <!--common script for all pages-->
+    <script src="../static/lib/common-scripts.js"></script>
+    <!--script for this page-->
+</body>
+</html>

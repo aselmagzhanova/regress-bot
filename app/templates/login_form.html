@@ -1,0 +1,76 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Dashboard">
+    <meta name="keyword" content="Dashboard, Bootstrap, Admin, Template, Theme, Responsive, Fluid, Retina">
+    <title>REGRESS-BOT: Log In</title>
+    <!-- Favicons -->
+    <link href="../static/img/favicon.png" rel="icon">
+    <link href="../static/img/apple-touch-icon.png" rel="apple-touch-icon">
+    <!-- Bootstrap core CSS -->
+    <link href="../static/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!--external css-->
+    <link href="../static/lib/font-awesome/css/font-awesome.css" rel="stylesheet" />
+    <!-- Custom styles for this template -->
+    <link href="../static/css/style.css" rel="stylesheet">
+    <link href="../static/css/style-responsive.css" rel="stylesheet">
+</head>
+<body>
+    <!-- **********************************************************************************************************************************************************
+    MAIN CONTENT
+    *********************************************************************************************************************************************************** -->
+    <div id="login-page">
+        <div class="container">
+            <form class="form-login" action="/login" method="post">
+                <h2 class="form-login-heading">REGRESS-BOT</h2>
+                <div class="login-wrap">
+                    <input name="input-login" type="text" class="form-control" placeholder="Login" autofocus>
+                    <br>
+                    <input name="input-password" type="password" class="form-control" placeholder="Password">
+                    <label class="checkbox">
+                        <input type="checkbox" value="remember-me" style="margin-left: 0px">
+                        <span style="margin-left: 15px">
+                            Remember me
+                        </span>
+                    </label>
+                    <button class="btn btn-theme btn-block" href="{{ url_for('create_filter') }}" type="submit">
+                        <i class="fa fa-lock"></i>
+                        LOG IN
+                    </button>
+                    <hr>
+                    <div class="registration">
+                        Don't have an account yet?<br/>
+                        <a class="" href="#">
+                            Request access
+                        </a>
+                    </div>
+                </div>
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-warning alert-dismissible">
+                            <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                            {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </form>
+        </div>
+    </div>
+    <!-- js placed at the end of the document so the pages load faster -->
+    <script src="../static/lib/jquery/jquery.min.js"></script>
+    <script src="../static/lib/bootstrap/js/bootstrap.min.js"></script>
+    <!--BACKSTRETCH-->
+    <!-- You can use an image of whatever size. This script will stretch to fit in any screen size.-->
+    <script type="text/javascript" src="../static/lib/jquery.backstretch.min.js"></script>
+    <script>
+        $.backstretch("", {
+            speed: 500
+        });
+    </script>
+    </body>
+</html>
