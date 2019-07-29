@@ -1,4 +1,5 @@
 # system catalogs
 .idea/
+app/venv/
 # real data
 database/regressbotdb.sql
