@@ -4,3 +4,4 @@ app/venv/
 app/__pycache__/
 # real data
 database/regressbotdb.sql
+app/config.yml
