@@ -49,7 +49,7 @@ def login():
 
 @app.route('/search')
 def create_filter():
-    return render_template('filter_form.html')
+    return render_template('filter_form.html', user_name=session['user_name'])
 
 
 @app.route('/searchresult')
