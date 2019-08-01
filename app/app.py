@@ -1,6 +1,6 @@
 from flask import flash, Flask, redirect, render_template, request, session, url_for
 from flask_sqlalchemy import SQLAlchemy
-from Model import UserLoginInfo
+from Model import HcsStands, HcsSubsystems, UserLoginInfo
 from sqlalchemy import func
 import yaml
 
@@ -49,7 +49,21 @@ def login():
 
 @app.route('/search')
 def create_filter():
-    return render_template('filter_form.html', user_name=session['user_name'])
+    pg_stands = []
+    pg_databases = []
+    pg_subsystems = []
+    if session['login'] is None:
+        return redirect(url_for('login'))
+    for row in db.session.query(HcsStands.stand_name).all():
+        pg_stands.append(row[0])
+    for row in db.session.query(HcsSubsystems.database_name).distinct(HcsSubsystems.database_name).all():
+        pg_databases.append(row[0])
+    for row in db.session.query(HcsSubsystems.subsystem_name).filter(
+            func.lower(HcsSubsystems.database_name) == 'hcshmdb').all():
+        pg_subsystems.append(row[0])
+    return render_template("filter_form.html", user_name=session['user_name'],
+                           pg_stands=pg_stands, pg_databases=pg_databases,
+                           pg_subsystems=pg_subsystems)
 
 
 @app.route('/searchresult')
