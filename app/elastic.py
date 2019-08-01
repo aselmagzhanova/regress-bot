@@ -73,13 +73,16 @@ def get_elastic_regress_result():
                         }
                     }
                 }, request_timeout=1)
+                index = 1
                 for hit in es_conn_hits['hits']['hits']:
-                    es_dict[hit['_id']] = {'elastic_query_hash': hit["_source"]["statement_hash"],
-                                           'elastic_query_stand': hit["_source"]["stand"],
-                                           'elastic_query_database': hit["_source"]["database"],
-                                           'elastic_query_text': hit["_source"]["statement"],
-                                           'elastic_query_duration': hit["_source"]["duration"],
-                                           'elastic_query_date': hit["_source"]["pgtime"]}
+                    es_dict[index] = {'elastic_query_hash': hit["_source"]["statement_hash"],
+                                      'elastic_query_params': None,
+                                      'elastic_query_stand': hit["_source"]["stand"],
+                                      'elastic_query_database': hit["_source"]["database"],
+                                      'elastic_query_text': hit["_source"]["statement"],
+                                      'elastic_query_duration': hit["_source"]["duration"],
+                                      'elastic_query_date': hit["_source"]["pgtime"]}
+                    index += 1
             except elasticsearch.ConnectionError:
                 print("ES connection error")
     return es_dict

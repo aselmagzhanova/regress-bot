@@ -121,7 +121,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                    {% for key, value in es_data.items() %}
+                                    {% for key, value in es_output_data.items() %}
                                         <tr>
                                             <td>{{ value["elastic_query_stand"] }}</td>
                                             <td>{{ value["elastic_query_database"] }}</td>
@@ -136,7 +136,7 @@
                                                 <td></td>
                                             {% endif %}
                                             <td>{{ value["elastic_query_date"] }}</td>
-                                            <td><button type="button" class="btn btn-theme04">Open issue</button></td>
+                                            <td><button name="button-open-{{ loop.index }}" type="button" class="btn btn-theme04">Open issue</button></td>
                                         </tr>
                                     {% endfor %}
                                     </tbody>

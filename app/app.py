@@ -2,13 +2,14 @@ import elastic
 from flask import flash, Flask, redirect, render_template, request, session, url_for
 from flask_sqlalchemy import SQLAlchemy
 import globalparams
+import jiratask
 from Model import HcsStands, HcsSubsystems, JiraTasks, UserLoginInfo
 from sqlalchemy import func
 import yaml
 
 app = Flask(__name__)
 
-with open("config.yml", 'r') as file:
+with open('config.yml', 'r') as file:
     config = yaml.load(file)
 
 app.config['SECRET_KEY'] = 'idi_v_svoi_dvor'
@@ -63,7 +64,7 @@ def create_filter():
     for row in db.session.query(HcsSubsystems.subsystem_name).filter(
             func.lower(HcsSubsystems.database_name) == 'hcshmdb').all():
         globalparams.pg_subsystems.append(row[0])
-    return render_template("filter_form.html",
+    return render_template('filter_form.html',
                            user_name=session['user_name'],
                            pg_stands=globalparams.pg_stands,
                            pg_databases=globalparams.pg_databases,
@@ -75,34 +76,34 @@ def create_filter_post():
     if request.method == 'POST':
         if 'button-search' in request.form:
             if request.form.getlist('checkbox-stand') is not None:
-                globalparams.elastic_stand = request.form.getlist('checkbox-stand')
+                globalparams.es_input_data['elastic_stand'] = request.form.getlist('checkbox-stand')
             if request.form.getlist('checkbox-database') is not None:
-                globalparams.elastic_database = request.form.getlist('checkbox-database')
+                globalparams.es_input_data['elastic_database'] = request.form.getlist('checkbox-database')
             if request.form.getlist('checkbox-subsystem') is not None:
-                globalparams.elastic_subsystem = request.form.getlist('checkbox-subsystem')
-            if request.form['duration'] is not "":
-                globalparams.elastic_duration = request.form['duration']
-            if request.form['time-from'] and request.form['time-to'] is not "":
-                globalparams.elastic_time_range = [request.form['time-from'], request.form['time-to']]
+                globalparams.es_input_data['elastic_subsystem'] = request.form.getlist('checkbox-subsystem')
+            if request.form['duration'] is not '':
+                globalparams.es_input_data['elastic_duration'] = request.form['duration']
+            if request.form['time-from'] and request.form['time-to'] is not '':
+                globalparams.es_input_data['elastic_time_range'] = [request.form['time-from'], request.form['time-to']]
             return redirect(url_for('search_result'))
         if 'button-save-filter' in request.form:
             if request.form.getlist('checkbox-stand') is not None:
                 user_filter_stand = request.form.getlist('checkbox-stand')
             if request.form.getlist('checkbox-database') is not None:
                 user_filter_subsystem = request.form.getlist('checkbox-database')
-            if request.form['duration'] is not "":
+            if request.form['duration'] is not '':
                 user_filter_duration = request.form['duration']
-            if request.form['filter-name'] is not "":
+            if request.form['filter-name'] is not '':
                 user_filter_name = request.form['filter-name']
             else:
                 user_filter_name = 'NULL'
             try:
                 db.session.execute(
                     "select * from rgbotsm.func_create_user_filter('" + user_filter_name + "', \
-                     '" + session['login'] + "', \
-                      ARRAY" + str(user_filter_stand) + ", \
-                      ARRAY" + str(user_filter_subsystem) + ", \
-                      '" + user_filter_duration + "');")
+                    '" + session['login'] + "', \
+                    ARRAY" + str(user_filter_stand) + ", \
+                    ARRAY" + str(user_filter_subsystem) + ", \
+                    '" + user_filter_duration + "');")
                 db.session.commit()
             except():
                 redirect(url_for('error_500'))
@@ -113,11 +114,29 @@ def create_filter_post():
 def search_result():
     if session['login'] is None:
         return redirect(url_for('login'))
-    es_data = elastic.get_elastic_regress_result()
+    globalparams.es_output_data = elastic.get_elastic_regress_result()
     pg_data = {}
     for row in db.session.query(JiraTasks.statement_hash, JiraTasks.issue_number).all():
         pg_data[row[0]] = row[1]
-    return render_template("filter_result.html", user_name=session['user_name'], es_data=es_data, pg_data=pg_data)
+    return render_template('filter_result.html',
+                           user_name=session['user_name'],
+                           es_output_data=globalparams.es_output_data,
+                           pg_data=pg_data)
+
+
+@app.route('/searchresult', methods=['GET', 'POST'])
+def search_result_post():
+    if request.method == 'POST':
+        for index in range(1, len(globalparams.es_output_data)+1):
+            if 'button-open-' + str(index) in request.form:
+                team_lineup = {}
+                team_lineup['tpm'] = 'adkuznetsova'
+                team_lineup['teamlead'] = 'adkuznetsova'
+                team_lineup['analyst'] = 'adkuznetsova'
+                team_lineup['qa'] = 'adkuznetsova'
+                team_lineup['dba'] = 'adkuznetsova'
+                jiratask.create_task(globalparams.es_output_data[index], team_lineup)
+    return '', 204
 
 
 @app.route('/filters')
