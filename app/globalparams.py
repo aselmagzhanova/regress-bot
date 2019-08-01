@@ -1,11 +1,29 @@
-# postgres params
-pg_stands = None
-pg_databases = None
-pg_subsystems = None
+########################################################################################################################
+### PG PARAMS ##########################################################################################################
+pg_stands = []
+pg_databases = []
+pg_subsystems = []
 
-# elastic filter params
-elastic_stand = None
-elastic_database = None
-elastic_subsystem = None
+
+########################################################################################################################
+### ELASTIC QUERY PARAMS ###############################################################################################
+elastic_stand = ["null"]
+elastic_database = ["null"]
+elastic_subsystem = ["null"]
 elastic_duration = -1
-elastic_time_range = None
+elastic_time_range = ["*", "*"]
+
+
+########################################################################################################################
+### ELASTIC RESULT PARAMS ##############################################################################################
+elastic_query_hash = ""
+elastic_query_text = ""
+elastic_query_params = ""
+elastic_query_duration = ""
+elastic_query_date = None
+
+
+########################################################################################################################
+### JIRA + PG TASK ADD PARAMS ##########################################################################################
+pg_team_lineup = {}
+pg_query_explain = ""

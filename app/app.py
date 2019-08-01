@@ -1,7 +1,8 @@
+import elastic
 from flask import flash, Flask, redirect, render_template, request, session, url_for
 from flask_sqlalchemy import SQLAlchemy
 import globalparams
-from Model import HcsStands, HcsSubsystems, UserLoginInfo
+from Model import HcsStands, HcsSubsystems, JiraTasks, UserLoginInfo
 from sqlalchemy import func
 import yaml
 
@@ -71,7 +72,6 @@ def create_filter():
 
 @app.route('/search', methods=['POST'])
 def create_filter_post():
-    user_filter_name = ""
     if request.method == 'POST':
         if 'button-search' in request.form:
             if request.form.getlist('checkbox-stand') is not None:
@@ -111,7 +111,13 @@ def create_filter_post():
 
 @app.route('/searchresult')
 def search_result():
-    return render_template('filter_result.html')
+    if session['login'] is None:
+        return redirect(url_for('login'))
+    es_data = elastic.get_elastic_regress_result()
+    pg_data = {}
+    for row in db.session.query(JiraTasks.statement_hash, JiraTasks.issue_number).all():
+        pg_data[row[0]] = row[1]
+    return render_template("filter_result.html", user_name=session['user_name'], es_data=es_data, pg_data=pg_data)
 
 
 @app.route('/filters')
