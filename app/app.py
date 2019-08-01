@@ -1,5 +1,6 @@
 from flask import flash, Flask, redirect, render_template, request, session, url_for
 from flask_sqlalchemy import SQLAlchemy
+import globalparams
 from Model import HcsStands, HcsSubsystems, UserLoginInfo
 from sqlalchemy import func
 import yaml
@@ -49,21 +50,63 @@ def login():
 
 @app.route('/search')
 def create_filter():
-    pg_stands = []
-    pg_databases = []
-    pg_subsystems = []
+    globalparams.pg_stands = []
+    globalparams.pg_databases = []
+    globalparams.pg_subsystems = []
     if session['login'] is None:
         return redirect(url_for('login'))
     for row in db.session.query(HcsStands.stand_name).all():
-        pg_stands.append(row[0])
+        globalparams.pg_stands.append(row[0])
     for row in db.session.query(HcsSubsystems.database_name).distinct(HcsSubsystems.database_name).all():
-        pg_databases.append(row[0])
+        globalparams.pg_databases.append(row[0])
     for row in db.session.query(HcsSubsystems.subsystem_name).filter(
             func.lower(HcsSubsystems.database_name) == 'hcshmdb').all():
-        pg_subsystems.append(row[0])
-    return render_template("filter_form.html", user_name=session['user_name'],
-                           pg_stands=pg_stands, pg_databases=pg_databases,
-                           pg_subsystems=pg_subsystems)
+        globalparams.pg_subsystems.append(row[0])
+    return render_template("filter_form.html",
+                           user_name=session['user_name'],
+                           pg_stands=globalparams.pg_stands,
+                           pg_databases=globalparams.pg_databases,
+                           pg_subsystems=globalparams.pg_subsystems)
+
+
+@app.route('/search', methods=['POST'])
+def create_filter_post():
+    user_filter_name = ""
+    if request.method == 'POST':
+        if 'button-search' in request.form:
+            if request.form.getlist('checkbox-stand') is not None:
+                globalparams.elastic_stand = request.form.getlist('checkbox-stand')
+            if request.form.getlist('checkbox-database') is not None:
+                globalparams.elastic_database = request.form.getlist('checkbox-database')
+            if request.form.getlist('checkbox-subsystem') is not None:
+                globalparams.elastic_subsystem = request.form.getlist('checkbox-subsystem')
+            if request.form['duration'] is not "":
+                globalparams.elastic_duration = request.form['duration']
+            if request.form['time-from'] and request.form['time-to'] is not "":
+                globalparams.elastic_time_range = [request.form['time-from'], request.form['time-to']]
+            return redirect(url_for('search_result'))
+        if 'button-save-filter' in request.form:
+            if request.form.getlist('checkbox-stand') is not None:
+                user_filter_stand = request.form.getlist('checkbox-stand')
+            if request.form.getlist('checkbox-database') is not None:
+                user_filter_subsystem = request.form.getlist('checkbox-database')
+            if request.form['duration'] is not "":
+                user_filter_duration = request.form['duration']
+            if request.form['filter-name'] is not "":
+                user_filter_name = request.form['filter-name']
+            else:
+                user_filter_name = 'NULL'
+            try:
+                db.session.execute(
+                    "select * from rgbotsm.func_create_user_filter('" + user_filter_name + "', \
+                     '" + session['login'] + "', \
+                      ARRAY" + str(user_filter_stand) + ", \
+                      ARRAY" + str(user_filter_subsystem) + ", \
+                      '" + user_filter_duration + "');")
+                db.session.commit()
+            except():
+                redirect(url_for('error_500'))
+    return '', 204
 
 
 @app.route('/searchresult')
@@ -89,6 +132,16 @@ def user_info():
 @app.route('/links')
 def useful_links():
     return render_template('FAQ.html')
+
+
+@app.errorhandler(404)
+def error_404(e):
+    return render_template('404.html'), 404
+
+
+@app.errorhandler(500)
+def error_500(e):
+    return render_template('500.html'), 500
 
 
 if __name__ == '__main__':
