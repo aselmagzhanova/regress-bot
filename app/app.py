@@ -189,7 +189,10 @@ def search_result_post():
 
 @app.route('/filters')
 def filters_list():
-    return render_template('filters_list.html')
+    user_filters = db.session.execute(
+        "select * from rgbotsm.func_create_filter_description_user_level('" + session['login'].lower() + "');")
+    return render_template("filters_list.html", user_name=session['user_name'],
+                           data=user_filters)
 
 
 @app.route('/jiraissues')
