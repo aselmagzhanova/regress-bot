@@ -16,10 +16,10 @@ def create_elastic_conn():
 
 def parse_date():
     date_range = []
-    if globalparams.elastic_time_range[0] is not "*":
-        start_date_ref = datetime.strptime(globalparams.elastic_time_range[0], '%m/%d/%Y')
+    if globalparams.es_input_data['elastic_time_range'][0] is not "*":
+        start_date_ref = datetime.strptime(globalparams.es_input_data['elastic_time_range'][0], '%m/%d/%Y')
         start_date = date(start_date_ref.year, start_date_ref.month, start_date_ref.day)
-        end_date_ref = datetime.strptime(globalparams.elastic_time_range[1], '%m/%d/%Y')
+        end_date_ref = datetime.strptime(globalparams.es_input_data['elastic_time_range'][1], '%m/%d/%Y')
         end_date = date(end_date_ref.year, end_date_ref.month, end_date_ref.day)
         delta = end_date - start_date
         for i in range(delta.days + 1):
@@ -31,7 +31,7 @@ def get_elastic_regress_result():
     es = create_elastic_conn()
     date_range = parse_date()
     es_dict = {}
-    if globalparams.elastic_time_range[0] is not "*":
+    if globalparams.es_input_data['elastic_time_range'][0] is not "*":
         for index_date in date_range:
             print(config['elastic']['index'] + index_date)
             # check conn
@@ -48,12 +48,12 @@ def get_elastic_regress_result():
                                 },
                                 # stand
                                 {"terms": {
-                                    "stand": globalparams.elastic_stand
+                                    "stand": globalparams.es_input_data['elastic_stand']
                                       }
                                  },
                                 # database
                                 {"terms": {
-                                    "database": globalparams.elastic_database
+                                    "database": globalparams.es_input_data['elastic_database']
                                       }
                                  },
                                 # comment out when elastic indexes change names
@@ -66,7 +66,7 @@ def get_elastic_regress_result():
                             "filter": {
                                 "range": {
                                     "duration": {
-                                        "gte": globalparams.elastic_duration
+                                        "gte": globalparams.es_input_data['elastic_duration']
                                     }
                                 }
                             }
@@ -76,7 +76,7 @@ def get_elastic_regress_result():
                 index = 1
                 for hit in es_conn_hits['hits']['hits']:
                     es_dict[index] = {'elastic_query_hash': hit["_source"]["statement_hash"],
-                                      'elastic_query_params': None,
+                                      'elastic_query_params': 'null',
                                       'elastic_query_stand': hit["_source"]["stand"],
                                       'elastic_query_database': hit["_source"]["database"],
                                       'elastic_query_text': hit["_source"]["statement"],

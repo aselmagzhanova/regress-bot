@@ -12,11 +12,6 @@ es_input_data = {'elastic_stand': ['null'],
                  'elastic_subsystem': ['null'],
                  'elastic_duration': -1,
                  'elastic_time_range': ['*', '*']}
-# elastic_stand = ['null']
-# elastic_database = ['null']
-# elastic_subsystem = ['null']
-# elastic_duration = -1
-# elastic_time_range = ['*', '*']
 
 
 ########################################################################################################################

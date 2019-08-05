@@ -1,6 +1,10 @@
 import globalparams
 from jira import JIRA
+import yaml
 
+
+with open('config.yml', 'r') as file:
+    config = yaml.load(file)
 
 jira = None
 project_id = -1
@@ -9,8 +13,8 @@ project_id = -1
 # create jira connection
 def jira_conn():
     global jira
-    jira = JIRA(auth=('login', 'password'),
-                options={'server': 'jira.com',
+    jira = JIRA(auth=(config['jira']['login'], config['jira']['password']),
+                options={'server': config['jira']['server'],
                          'verify': False})
     print(jira)
 
@@ -113,4 +117,4 @@ def create_task(query_data, team_lineup):
 
     jira_issue = jira_conn_object.create_issue(fields=issue_dict)
 
-    return jira_issue
+    return str(jira_issue.key)

@@ -104,8 +104,8 @@
                 </h3>
                 <div class="row mt">
                     <div class="col-lg-12">
-                        <div class="content-panel">
-                            <section id="unseen">
+                        <div class="form-panel">
+                            <form class="form-horizontal style-form" action="/searchresult" method="post">
                                 <table class="table table-bordered table-striped table-condensed">
                                     <thead>
                                         <tr>
@@ -131,17 +131,19 @@
                                             {% if pg_data[value["elastic_query_hash"]] %}
                                                 <td><span class="label label-success">Yes</span></td>
                                                 <td><a href="https://hcs.jira.lanit.ru/browse/{{ pg_data[value["elastic_query_hash"]] }}" target="_blank">{{ pg_data[value["elastic_query_hash"]] }}</a></td>
+                                                <td>{{ value["elastic_query_date"] }}</td>
+                                                <td><button name="button-open-{{ loop.index }}" type="button" class="btn btn-theme04" disabled>Open issue</button></td>
                                             {% else %}
                                                 <td><span class="label label-danger">No</span></td>
                                                 <td></td>
+                                                <td>{{ value["elastic_query_date"] }}</td>
+                                                <td><button name="button-open-{{ loop.index }}" type="submit" class="btn btn-theme04">Open issue</button></td>
                                             {% endif %}
-                                            <td>{{ value["elastic_query_date"] }}</td>
-                                            <td><button name="button-open-{{ loop.index }}" type="button" class="btn btn-theme04">Open issue</button></td>
                                         </tr>
                                     {% endfor %}
                                     </tbody>
                                 </table>
-                            </section>
+                            </form>
                         </div>
                         <!-- /content-panel -->
                     </div>
