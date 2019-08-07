@@ -3,7 +3,7 @@ from flask import flash, Flask, redirect, render_template, request, session, url
 from flask_sqlalchemy import SQLAlchemy
 import globalparams
 import jiratask
-from Model import HcsMembers, HcsStands, HcsSubsystems, HcsTeamLineups, HcsTeams, JiraTasks, UserLoginInfo
+from Model import HcsStands, HcsSubsystems, JiraTasks, UserLoginInfo
 from sqlalchemy import func
 import webbrowser
 import yaml
@@ -175,15 +175,17 @@ def search_result_post():
                 # при падении вылезет эксепшн 500 еще в методе create_task
                 jira_task_key = jiratask.create_task(globalparams.es_output_data[index], team_lineup)
                 db.session.execute(
-                    "insert into rgbotsm.jira_tasks(stand_id, subsystem_id, statement_hash, statement_text, issue_number)\
+                    "insert into rgbotsm.jira_tasks(stand_id, subsystem_id, statement_hash, statement_text, issue_number, duration)\
                      values((select id from rgbotsm.hcs_stands where stand_name = '" + globalparams.es_output_data[index]['elastic_query_stand'] + "'),\
                             (select id from rgbotsm.hcs_subsystems where database_name = '" + ref_database + "'),\
                             '" + globalparams.es_output_data[index]['elastic_query_hash'] + "',\
                             '" + globalparams.es_output_data[index]['elastic_query_text'] + "',\
-                            '" + jira_task_key +"');"
+                            '" + jira_task_key +"',\
+                            '" + str(globalparams.es_output_data[index]['elastic_query_duration']) +"');"
                 )
                 db.session.commit()
                 webbrowser.open_new_tab('https://hcs.jira.lanit.ru/browse/' + jira_task_key)
+                return redirect(url_for('search_result'))
     return '', 204
 
 
@@ -197,7 +199,23 @@ def filters_list():
 
 @app.route('/jiraissues')
 def jira_issues():
-    return render_template('jira_issues.html')
+    # fix ORM tuples (!)
+    jira_issues = db.session.execute(
+        "select hst.stand_name,\
+                hsb.database_name,\
+                hsb.subsystem_name,\
+                jt.statement_text,\
+                jt.duration,\
+                jt.issue_number\
+         from rgbotsm.jira_tasks jt\
+         inner join rgbotsm.hcs_subsystems hsb\
+         on jt.subsystem_id = hsb.id\
+         inner join rgbotsm.hcs_stands hst\
+         on jt.stand_id = hst.id;")
+    db.session.commit()
+    # костыль
+    return render_template("jira_issues.html", user_name=session['user_name'],
+                           jira_issues=jira_issues)
 
 
 @app.route('/userinfo')

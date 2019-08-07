@@ -192,6 +192,7 @@ class JiraTasks(Base):
     statement_text = Column(String, nullable=False)
     issue_number = Column(String, nullable=False)
     creation_date = Column(DateTime, nullable=False)
+    duration = Column(String, nullable=False)
 
     def __init__(self,
                  id=None,
@@ -200,7 +201,8 @@ class JiraTasks(Base):
                  statement_hash=None,
                  statement_text=None,
                  issue_number=None,
-                 creation_date=None):
+                 creation_date=None,
+                 duration=None):
         self.id = id
         self.stand_id = stand_id
         self.subsystem_id = subsystem_id
@@ -208,16 +210,18 @@ class JiraTasks(Base):
         self.statement_text = statement_text
         self.issue_number = issue_number
         self.creation_date = creation_date
+        self.duration = duration
 
     def __repr__(self):
        return '<id: %r\n stand_id: %r\n subsystem_id: %r\n statement_hash: %r\n statement_text: %r\n ' \
-              'issue_number: %r\n creation_date: %r>' % (self.id,
-                                                         self.stand_id,
-                                                         self.subsystem_id,
-                                                         self.statement_hash,
-                                                         self.statement_text,
-                                                         self.issue_number,
-                                                         self.creation_date)
+              'issue_number: %r\n creation_date: %r\n duration: %r>' % (self.id,
+                                                                        self.stand_id,
+                                                                        self.subsystem_id,
+                                                                        self.statement_hash,
+                                                                        self.statement_text,
+                                                                        self.issue_number,
+                                                                        self.creation_date,
+                                                                        self.duration)
 
 
 # rgbotsm.user_filters

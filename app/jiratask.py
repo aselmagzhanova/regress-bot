@@ -1,4 +1,3 @@
-import globalparams
 from jira import JIRA
 import yaml
 
@@ -118,3 +117,21 @@ def create_task(query_data, team_lineup):
     jira_issue = jira_conn_object.create_issue(fields=issue_dict)
 
     return str(jira_issue.key)
+
+
+def return_status(issue_number):
+    global jira
+    global project_id
+    jira_conn()
+    jira_conn_object = jira
+    print(issue_number)
+    current_issue = jira_conn_object.issue(issue_number)
+    return current_issue.fields.status
+
+
+def reopen_task(issue_number):
+    global jira
+    global project_id
+    jira_conn()
+    jira_conn_object = jira
+    jira_conn_object.transition_issue(issue_number, transition='На анализ')
