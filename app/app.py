@@ -3,7 +3,7 @@ from flask import flash, Flask, redirect, render_template, request, session, url
 from flask_sqlalchemy import SQLAlchemy
 import globalparams
 import jiratask
-from Model import HcsStands, HcsSubsystems, JiraTasks, UserLoginInfo
+from Model import HcsMembers, HcsStands, HcsSubsystems, HcsTeamLineups, HcsTeams, JiraTasks, UserLoginInfo
 from sqlalchemy import func
 import webbrowser
 import yaml
@@ -132,45 +132,45 @@ def search_result_post():
             if 'button-open-' + str(index) in request.form:
                 ref_database = globalparams.es_output_data[index]['elastic_query_database']
                 team_lineup = {}
-                team_lineup['tpm'] = db.session.execute(
+                team_lineup['tpm'] = str(db.session.execute(
                     "select login from rgbotsm.hcs_members\
-                    where id = (select tpm_id from rgbotsm.hcs_team_lineups\
-                                where team_id = (select id from rgbotsm.hcs_teams\
-                                                 where subsystem_id = (select id from rgbotsm.hcs_subsystems\
-                                                                       where database_name = '" + ref_database + "')));"
-                )
+                     where id = (select tpm_id from rgbotsm.hcs_team_lineups\
+                                 where team_id = (select id from rgbotsm.hcs_teams\
+                                                  where subsystem_id = (select id from rgbotsm.hcs_subsystems\
+                                                                        where database_name = '" + ref_database + "')));"
+                ).fetchall()[0][0])
                 db.session.commit()
-                team_lineup['teamlead'] = db.session.execute(
+                team_lineup['teamlead'] = str(db.session.execute(
                     "select login from rgbotsm.hcs_members\
-                    where id = (select teamlead_id from rgbotsm.hcs_team_lineups\
-                                where team_id = (select id from rgbotsm.hcs_teams\
-                                                 where subsystem_id = (select id from rgbotsm.hcs_subsystems\
-                                                                       where database_name = '" + ref_database + "')));"
-                )
+                     where id = (select teamlead_id from rgbotsm.hcs_team_lineups\
+                                 where team_id = (select id from rgbotsm.hcs_teams\
+                                                  where subsystem_id = (select id from rgbotsm.hcs_subsystems\
+                                                                        where database_name = '" + ref_database + "')));"
+                ).fetchall()[0][0])
                 db.session.commit()
-                team_lineup['analyst'] = db.session.execute(
+                team_lineup['analyst'] = str(db.session.execute(
                     "select login from rgbotsm.hcs_members\
-                    where id = (select analyst_id from rgbotsm.hcs_team_lineups\
-                                where team_id = (select id from rgbotsm.hcs_teams\
-                                                 where subsystem_id = (select id from rgbotsm.hcs_subsystems\
-                                                                       where database_name = '" + ref_database + "')));"
-                )
+                     where id = (select analyst_id from rgbotsm.hcs_team_lineups\
+                                 where team_id = (select id from rgbotsm.hcs_teams\
+                                                  where subsystem_id = (select id from rgbotsm.hcs_subsystems\
+                                                                        where database_name = '" + ref_database + "')));"
+                ).fetchall()[0][0])
                 db.session.commit()
-                team_lineup['qa'] = db.session.execute(
+                team_lineup['qa'] = str(db.session.execute(
                     "select login from rgbotsm.hcs_members\
                     where id = (select qa_id from rgbotsm.hcs_team_lineups\
                                 where team_id = (select id from rgbotsm.hcs_teams\
                                                  where subsystem_id = (select id from rgbotsm.hcs_subsystems\
                                                                        where database_name = '" + ref_database + "')));"
-                )
+                ).fetchall()[0][0])
                 db.session.commit()
-                team_lineup['dba'] = db.session.execute(
+                team_lineup['dba'] = str(db.session.execute(
                     "select login from rgbotsm.hcs_members\
-                    where id = (select dba_id from rgbotsm.hcs_team_lineups\
-                                where team_id = (select id from rgbotsm.hcs_teams\
-                                                 where subsystem_id = (select id from rgbotsm.hcs_subsystems\
-                                                                       where database_name = '" + ref_database + "')));"
-                )
+                     where id = (select dba_id from rgbotsm.hcs_team_lineups\
+                                 where team_id = (select id from rgbotsm.hcs_teams\
+                                                  where subsystem_id = (select id from rgbotsm.hcs_subsystems\
+                                                                        where database_name = '" + ref_database + "')));"
+                ).fetchall()[0][0])
                 db.session.commit()
                 # при падении вылезет эксепшн 500 еще в методе create_task
                 jira_task_key = jiratask.create_task(globalparams.es_output_data[index], team_lineup)
