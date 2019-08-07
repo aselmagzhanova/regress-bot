@@ -39,6 +39,213 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
 COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
 
 
+--
+-- Name: func_create_filter_description_user_level(character varying); Type: FUNCTION; Schema: rgbotsm; Owner: postgres
+--
+
+CREATE FUNCTION rgbotsm.func_create_filter_description_user_level(puserlogin character varying) RETURNS TABLE(ref_filter_name character varying, ref_description character varying)
+    LANGUAGE plpgsql
+    AS $$
+declare
+
+    lFilterId integer;
+    lFilterName character varying := '';
+    lDescription character varying := '';
+
+  begin
+
+    drop table if exists filters_descriptions;
+    create temp table filters_descriptions
+    (
+      filter_name character varying,
+      description character varying
+    );
+
+    for lFilterId in (select id
+                      from rgbotsm.user_filters
+                      where user_id = (select id from rgbotsm.user_login_info where lower(login) = lower(pUserLogin)))
+      loop
+
+        lDescription := '';
+
+        select filter_name into lFilterName
+        from rgbotsm.user_filters
+        where id = lFilterId;
+
+        raise notice 'filter: %', lFilterName;
+
+        -- add stands
+        if (select stand_id
+            from rgbotsm.user_filters
+            where id = lFilterId) is not null
+        then
+          lDescription := lDescription ||
+          'stand: ' || array_to_string((select array(select stand_name from rgbotsm.hcs_stands
+                       where id in (select unnest(stand_id)
+                                    from rgbotsm.user_filters
+                                    where id = lFilterId))), ', ') || E'\n';
+        end if;
+
+        -- add databases
+        if (select subsystem_id
+            from rgbotsm.user_filters
+            where id = lFilterId) is not null
+        then
+          lDescription := lDescription ||
+          'database: ' || array_to_string((select array(select database_name from rgbotsm.hcs_subsystems
+                          where id in (select unnest(subsystem_id)
+                                       from rgbotsm.user_filters
+                                       where id = lFilterId))), ', ') || E'\n';
+        end if;
+
+        -- add tables
+        if (select table_names
+            from rgbotsm.user_filters
+            where id = lFilterId) is not null
+        then
+          lDescription := lDescription ||
+          'table: ' || array_to_string((select table_names
+                                        from rgbotsm.user_filters
+                                        where id = lFilterId), ', ') || E'\n';
+        end if;
+
+        -- add keywords (dml, etc.)
+        if (select key_words
+            from rgbotsm.user_filters
+            where id = lFilterId) is not null
+        then
+          lDescription := lDescription ||
+          'dml: ' || array_to_string((select key_words
+                                      from rgbotsm.user_filters
+                                      where id = lFilterId), ', ') || E'\n';
+        end if;
+
+        -- add duration
+        if (select duration
+            from rgbotsm.user_filters
+            where id = lFilterId) is not null
+        then
+          lDescription := lDescription ||
+          'duration: ' || (select duration
+                           from rgbotsm.user_filters
+                           where id = lFilterId) || E'\n';
+        end if;
+
+        insert into filters_descriptions (select lFilterName, lDescription);
+
+      end loop;
+
+      return query select * from filters_descriptions;
+
+  end;
+$$;
+
+
+ALTER FUNCTION rgbotsm.func_create_filter_description_user_level(puserlogin character varying) OWNER TO postgres;
+
+--
+-- Name: func_create_user_filter(character varying, character varying, character varying[], character varying[], character varying); Type: FUNCTION; Schema: rgbotsm; Owner: postgres
+--
+
+CREATE FUNCTION rgbotsm.func_create_user_filter(pfiltername character varying, pusername character varying, pstands character varying[], pdatabases character varying[], pduration character varying) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+declare
+    lFilterName character varying := '';
+    lFilterID integer;
+  begin
+    if pFilterName = 'NULL'
+    then
+--       lFilterName := 'filter_' || (select max(substring(filter_name, '\d+')::integer)+1 from rgbotsm.user_filters
+--                                   where user_id = (select id from rgbotsm.user_login_info where lower(login) = lower(pUserName))
+--                                   and filter_name ~ 'filter_[0-9]');
+      lFilterName := 'noname_filter';
+    else
+      lFilterName := pFilterName;
+    end if;
+    -- заготовка для фильтра
+    insert into rgbotsm.user_filters (filter_name, user_id) values
+    (lFilterName, (select id from rgbotsm.user_login_info where lower(login) = lower(pUserName)));
+    -- ID фильтра
+    select id into lFilterID from rgbotsm.user_filters
+    where filter_name = lFilterName
+      and user_id = (select id from rgbotsm.user_login_info where lower(login) = lower(pUserName));
+    -- raise notice '%', pStands;
+    -- raise notice '%', array_length(pStands, 0);
+    -- обновляем параметры
+    if array_length(pStands, 1) <> 0
+    then
+      -- raise notice '% NOT NULLLL', pStands;
+      update rgbotsm.user_filters
+      set stand_id = (select array(select id from rgbotsm.hcs_stands
+                                   where lower(stand_name) in (select lower(unnest(pstands)))))
+      where id = lFilterID;
+    end if;
+
+    if array_length(pdatabases, 1) <> 0
+    then
+      update rgbotsm.user_filters
+      set subsystem_id = (select array(select id from rgbotsm.hcs_subsystems
+                                       where lower(database_name) in (select lower(unnest(pdatabases)))))
+      where id = lFilterID;
+    end if;
+
+    update rgbotsm.user_filters
+      set duration = pDuration::integer
+      where id = lFilterID;
+  end;
+$$;
+
+
+ALTER FUNCTION rgbotsm.func_create_user_filter(pfiltername character varying, pusername character varying, pstands character varying[], pdatabases character varying[], pduration character varying) OWNER TO postgres;
+
+--
+-- Name: func_get_user_name(character varying); Type: FUNCTION; Schema: rgbotsm; Owner: postgres
+--
+
+CREATE FUNCTION rgbotsm.func_get_user_name(puserlogin character varying) RETURNS character varying
+    LANGUAGE plpgsql
+    AS $$
+declare
+
+    lUserName character varying;
+
+  begin
+
+    select into lUserName
+    coalesce((select hm.user_name from rgbotsm.user_login_info uli
+              inner join rgbotsm.hcs_members hm
+              on lower(uli.login) = lower(hm.login)
+              where lower(uli.login) = lower(pUserlogin)), 'unknown user');
+
+    return lUserName;
+  end;
+
+$$;
+
+
+ALTER FUNCTION rgbotsm.func_get_user_name(puserlogin character varying) OWNER TO postgres;
+
+--
+-- Name: func_user_auth(character varying, character varying); Type: FUNCTION; Schema: rgbotsm; Owner: postgres
+--
+
+CREATE FUNCTION rgbotsm.func_user_auth(user_login character varying, user_password character varying) RETURNS boolean
+    LANGUAGE plpgsql
+    AS $$
+begin
+
+    return (select (pass_hash = crypt(user_password, pass_hash))
+            from rgbotsm.user_login_info
+            where lower(login) = lower(user_login));
+
+  end;
+
+$$;
+
+
+ALTER FUNCTION rgbotsm.func_user_auth(user_login character varying, user_password character varying) OWNER TO postgres;
+
 SET default_tablespace = '';
 
 SET default_with_oids = false;
@@ -304,7 +511,8 @@ CREATE TABLE rgbotsm.jira_tasks (
     statement_hash character varying(256) NOT NULL,
     statement_text character varying(256) NOT NULL,
     issue_number character varying(256) NOT NULL,
-    creation_date timestamp without time zone DEFAULT now()
+    creation_date timestamp without time zone DEFAULT now(),
+    duration character varying NOT NULL
 );
 
 
@@ -488,7 +696,7 @@ SELECT pg_catalog.setval('rgbotsm.hcs_connect_info_id_seq', 20, true);
 -- Name: hcs_members_id_seq; Type: SEQUENCE SET; Schema: rgbotsm; Owner: postgres
 --
 
-SELECT pg_catalog.setval('rgbotsm.hcs_members_id_seq', 23, true);
+SELECT pg_catalog.setval('rgbotsm.hcs_members_id_seq', 24, true);
 
 
 --
@@ -530,21 +738,21 @@ SELECT pg_catalog.setval('rgbotsm.hcs_teams_id_seq', 12, true);
 -- Name: jira_tasks_id_seq; Type: SEQUENCE SET; Schema: rgbotsm; Owner: postgres
 --
 
-SELECT pg_catalog.setval('rgbotsm.jira_tasks_id_seq', 1, false);
+SELECT pg_catalog.setval('rgbotsm.jira_tasks_id_seq', 6, true);
 
 
 --
 -- Name: user_filters_id_seq; Type: SEQUENCE SET; Schema: rgbotsm; Owner: postgres
 --
 
-SELECT pg_catalog.setval('rgbotsm.user_filters_id_seq', 1, false);
+SELECT pg_catalog.setval('rgbotsm.user_filters_id_seq', 7, true);
 
 
 --
 -- Name: user_login_info_id_seq; Type: SEQUENCE SET; Schema: rgbotsm; Owner: postgres
 --
 
-SELECT pg_catalog.setval('rgbotsm.user_login_info_id_seq', 2, true);
+SELECT pg_catalog.setval('rgbotsm.user_login_info_id_seq', 3, true);
 
 
 --
