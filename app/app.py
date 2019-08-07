@@ -206,7 +206,8 @@ def jira_issues():
                 hsb.subsystem_name,\
                 jt.statement_text,\
                 jt.duration,\
-                jt.issue_number\
+                jt.issue_number,\
+                jt.creation_date\
          from rgbotsm.jira_tasks jt\
          inner join rgbotsm.hcs_subsystems hsb\
          on jt.subsystem_id = hsb.id\

@@ -173,7 +173,7 @@
                                             <td>{{ row[4] }}</td>
                                             <td><a href="https://hcs.jira.lanit.ru/browse/{{ row[5] }}" target="_blank">{{ row[5] }}</a></td>
                                             <td><span class="label label-success">Закрыт</span></td>
-                                            <td>21.03.2019 test</td>
+                                            <td>{{ row[6] | string | truncate(10, False, '') }}</td>
                                             <td>
                                                 <div class="btn-group">
                                                     <button type="button" class="btn btn-theme">
