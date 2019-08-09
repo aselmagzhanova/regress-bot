@@ -250,8 +250,11 @@ def jira_issues():
          on jt.stand_id = hst.id;")
     db.session.commit()
     # костыль
+    issues_statuses = {}
+    for row in db.session.query(JiraTasks.issue_number).all():
+        issues_statuses[str(row[0])] = str(jiratask.return_status(str(row[0])))
     return render_template("jira_issues.html", user_name=session['user_name'],
-                           jira_issues=jira_issues)
+                           jira_issues=jira_issues, issues_statuses=issues_statuses)
 
 
 @app.route('/jiraissues', methods=['POST'])
@@ -263,6 +266,7 @@ def jira_issues_post():
                 issue_number = request.form.get("button-reopen-" + str(index))
                 jiratask.reopen_task(issue_number)
                 webbrowser.open_new_tab('https://hcs.jira.lanit.ru/browse/' + issue_number)
+                return redirect(url_for('jira_issues'))
     return '', 204
 
 

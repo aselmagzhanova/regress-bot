@@ -138,3 +138,5 @@ def reopen_task(issue_number):
     current_issue = jira_conn_object.issue(issue_number)
     teamlead = current_issue.raw['fields']['customfield_10828']['name']
     jira_conn_object.assign_issue(issue_number, teamlead)
+
+print(return_status('HCS-88972'))

@@ -172,11 +172,19 @@
                                             <td>{{ row[3] }}</td>
                                             <td>{{ row[4] }}</td>
                                             <td><a href="https://hcs.jira.lanit.ru/browse/{{ row[5] }}" target="_blank">{{ row[5] }}</a></td>
-                                            <td><span class="label label-success">Закрыт</span></td>
-                                            <td>{{ row[6] | string | truncate(10, False, '') }}</td>
-                                            <td>
-                                                <button name="button-reopen-{{ loop.index }}" type="submit" class="btn btn-theme" value="{{ row[5] }}">Reopen</button>
-                                            </td>
+                                            {% if issues_statuses[row[5]] == 'Закрыт' %}
+                                                <td><span class="label label-success">{{ issues_statuses[row[5]] }}</span></td>
+                                                <td>{{ row[6] | string | truncate(10, False, '') }}</td>
+                                                <td>
+                                                    <button name="button-reopen-{{ loop.index }}" type="submit" class="btn btn-theme" value="{{ row[5] }}">Reopen</button>
+                                                </td>
+                                            {% else %}
+                                                <td><span class="label label-danger">{{ issues_statuses[row[5]] }}</span></td>
+                                                <td>{{ row[6] | string | truncate(10, False, '') }}</td>
+                                                <td>
+                                                    <button name="button-reopen-{{ loop.index }}" type="submit" class="btn btn-theme" value="{{ row[5] }}" disabled>Reopen</button>
+                                                </td>
+                                            {% endif %}
                                         </tr>
                                     {% endfor %}
                                     </tbody>
