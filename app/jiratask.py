@@ -42,8 +42,8 @@ def create_task(query_data, team_lineup):
     # summary
     summary = query_data['elastic_query_stand'] + ': ' + \
               query_data['elastic_query_database'] + \
-              ' оптимизация: ' + \
-              query_data['elastic_query_text'][0:70]
+              ' оптимизация ' + \
+              " ".join(query_data['elastic_query_text'].replace('\n', '').split())[0:70]
     # description (with 'with_parameters' tag OR without 'with_parameters' tag)
     if query_data['elastic_query_params'] != 'null':
         description = '''Долгая работа запроса: 

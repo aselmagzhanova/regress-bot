@@ -179,7 +179,7 @@ def search_result_post():
                      values((select id from rgbotsm.hcs_stands where stand_name = '" + globalparams.es_output_data[index]['elastic_query_stand'] + "'),\
                             (select id from rgbotsm.hcs_subsystems where database_name = '" + ref_database + "'),\
                             '" + globalparams.es_output_data[index]['elastic_query_hash'] + "',\
-                            '" + globalparams.es_output_data[index]['elastic_query_text'] + "',\
+                            '" + globalparams.es_output_data[index]['elastic_query_text'].replace("'", "''") + "',\
                             '" + jira_task_key +"',\
                             '" + str(globalparams.es_output_data[index]['elastic_query_duration']) +"');"
                 )
@@ -217,6 +217,18 @@ def jira_issues():
     # костыль
     return render_template("jira_issues.html", user_name=session['user_name'],
                            jira_issues=jira_issues)
+
+
+@app.route('/jiraissues', methods=['POST'])
+def jira_issues_post():
+    if request.method == 'POST':
+        if 'button-reopen-' + str(1) in request.form:
+            jira_issues_amount = db.session.query(JiraTasks.id).count()
+            return str(jira_issues_amount)
+        for index in range(1, len(jira_issues)+1):
+            if 'button-reopen-' + str(index) in request.form:
+                return 'aaa'
+    return '', 204
 
 
 @app.route('/userinfo')
