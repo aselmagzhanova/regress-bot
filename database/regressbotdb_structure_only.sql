@@ -40,10 +40,28 @@ COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
 
 
 --
+-- Name: func_add_user(character varying, character varying); Type: FUNCTION; Schema: rgbotsm; Owner: postgres
+--
+
+CREATE FUNCTION rgbotsm.func_add_user(user_login character varying, user_password character varying DEFAULT "left"("right"(public.gen_salt('bf'::text), 10), 9)) RETURNS character varying
+    LANGUAGE plpgsql
+    AS $$
+  begin
+    insert into rgbotsm.user_login_info (login) values (user_login);
+    update rgbotsm.user_login_info set pass_hash = crypt(user_password, gen_salt('md5'))
+    where login = user_login;
+    return user_password;
+  end;
+$$;
+
+
+ALTER FUNCTION rgbotsm.func_add_user(user_login character varying, user_password character varying) OWNER TO postgres;
+
+--
 -- Name: func_create_filter_description_user_level(character varying); Type: FUNCTION; Schema: rgbotsm; Owner: postgres
 --
 
-CREATE FUNCTION rgbotsm.func_create_filter_description_user_level(puserlogin character varying) RETURNS TABLE(ref_filter_name character varying, ref_description character varying)
+CREATE FUNCTION rgbotsm.func_create_filter_description_user_level(puserlogin character varying) RETURNS TABLE(filter_id integer, ref_filter_name character varying, ref_description character varying)
     LANGUAGE plpgsql
     AS $$
 declare
@@ -57,6 +75,7 @@ declare
     drop table if exists filters_descriptions;
     create temp table filters_descriptions
     (
+      filter_id integer,
       filter_name character varying,
       description character varying
     );
@@ -131,11 +150,11 @@ declare
                            where id = lFilterId) || E'\n';
         end if;
 
-        insert into filters_descriptions (select lFilterName, lDescription);
+        insert into filters_descriptions (select lFilterId, lFilterName, lDescription);
 
       end loop;
 
-      return query select * from filters_descriptions;
+      return query select * from filters_descriptions order by filter_name;
 
   end;
 $$;
@@ -225,6 +244,45 @@ $$;
 
 
 ALTER FUNCTION rgbotsm.func_get_user_name(puserlogin character varying) OWNER TO postgres;
+
+--
+-- Name: func_get_user_teams(character varying); Type: FUNCTION; Schema: rgbotsm; Owner: postgres
+--
+
+CREATE FUNCTION rgbotsm.func_get_user_teams(puserlogin character varying) RETURNS TABLE(team_number integer, database character varying, subsystem character varying, role character varying)
+    LANGUAGE plpgsql
+    AS $$
+begin
+
+    return query
+    select * from (
+      select ht.team_number,
+             hs.database_name,
+             hs.subsystem_name,
+             case when (select lower(member.login) from rgbotsm.hcs_members member where member.id = htl.tpm_id) = lower(pUserLogin)
+                  then 'ТРП'::character varying
+                  when (select lower(member.login) from rgbotsm.hcs_members member where member.id = htl.teamlead_id) = lower(pUserLogin)
+                  then 'тимлид'::character varying
+                  when (select lower(member.login) from rgbotsm.hcs_members member where member.id = htl.analyst_id) = lower(pUserLogin)
+                  then 'аналитик'::character varying
+                  when (select lower(member.login) from rgbotsm.hcs_members member where member.id = htl.qa_id) = lower(pUserLogin)
+                  then 'QA'::character varying
+                  when (select lower(member.login) from rgbotsm.hcs_members member where member.id = htl.dba_id) = lower(pUserLogin)
+                  then 'DBA'::character varying
+             end as role
+      from rgbotsm.hcs_team_lineups htl
+        inner join rgbotsm.hcs_teams ht
+        on htl.team_id = ht.id
+        inner join rgbotsm.hcs_subsystems hs
+        on (ht.subsystem_id = hs.id)) res_tb
+      where res_tb.role is not null;
+
+  end;
+
+$$;
+
+
+ALTER FUNCTION rgbotsm.func_get_user_teams(puserlogin character varying) OWNER TO postgres;
 
 --
 -- Name: func_user_auth(character varying, character varying); Type: FUNCTION; Schema: rgbotsm; Owner: postgres
@@ -509,7 +567,7 @@ CREATE TABLE rgbotsm.jira_tasks (
     stand_id integer NOT NULL,
     subsystem_id integer NOT NULL,
     statement_hash character varying(256) NOT NULL,
-    statement_text character varying(256) NOT NULL,
+    statement_text text NOT NULL,
     issue_number character varying(256) NOT NULL,
     creation_date timestamp without time zone DEFAULT now(),
     duration character varying NOT NULL
@@ -685,6 +743,7 @@ ALTER TABLE ONLY rgbotsm.user_filters ALTER COLUMN id SET DEFAULT nextval('rgbot
 ALTER TABLE ONLY rgbotsm.user_login_info ALTER COLUMN id SET DEFAULT nextval('rgbotsm.user_login_info_id_seq'::regclass);
 
 
+
 --
 -- Name: hcs_connect_info_id_seq; Type: SEQUENCE SET; Schema: rgbotsm; Owner: postgres
 --
@@ -738,21 +797,21 @@ SELECT pg_catalog.setval('rgbotsm.hcs_teams_id_seq', 12, true);
 -- Name: jira_tasks_id_seq; Type: SEQUENCE SET; Schema: rgbotsm; Owner: postgres
 --
 
-SELECT pg_catalog.setval('rgbotsm.jira_tasks_id_seq', 6, true);
+SELECT pg_catalog.setval('rgbotsm.jira_tasks_id_seq', 7, true);
 
 
 --
 -- Name: user_filters_id_seq; Type: SEQUENCE SET; Schema: rgbotsm; Owner: postgres
 --
 
-SELECT pg_catalog.setval('rgbotsm.user_filters_id_seq', 7, true);
+SELECT pg_catalog.setval('rgbotsm.user_filters_id_seq', 10, true);
 
 
 --
 -- Name: user_login_info_id_seq; Type: SEQUENCE SET; Schema: rgbotsm; Owner: postgres
 --
 
-SELECT pg_catalog.setval('rgbotsm.user_login_info_id_seq', 3, true);
+SELECT pg_catalog.setval('rgbotsm.user_login_info_id_seq', 7, true);
 
 
 --
