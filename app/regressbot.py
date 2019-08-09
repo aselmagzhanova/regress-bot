@@ -3,7 +3,7 @@ from flask import flash, Flask, redirect, render_template, request, session, url
 from flask_sqlalchemy import SQLAlchemy
 import globalparams
 import jiratask
-from Model import HcsStands, HcsSubsystems, JiraTasks, UserLoginInfo
+from Model import HcsStands, HcsSubsystems, JiraTasks, UserFilters, UserLoginInfo
 from sqlalchemy import func
 import webbrowser
 import yaml
@@ -43,6 +43,18 @@ def login():
                 session['login'] = str(request.form['input-login']).lower()
                 session['user_name'] = str(db.session.query(
                     func.rgbotsm.func_get_user_name(session['login'])).first()[0])
+                globalparams.pg_stands = []
+                globalparams.pg_databases = []
+                globalparams.pg_subsystems = []
+                for row in db.session.query(HcsStands.stand_name).order_by(HcsStands.stand_name).all():
+                    globalparams.pg_stands.append(row[0])
+                for row in db.session.query(HcsSubsystems.database_name).distinct(HcsSubsystems.database_name).order_by(
+                        HcsSubsystems.database_name).all():
+                    globalparams.pg_databases.append(row[0])
+                for row in db.session.query(HcsSubsystems.subsystem_name).filter(
+                        func.lower(HcsSubsystems.database_name) == 'hcshmdb').order_by(
+                    HcsSubsystems.subsystem_name).all():
+                    globalparams.pg_subsystems.append(row[0])
                 return redirect(url_for('create_filter'))
             else:
                 flash('Wrong password!')
@@ -53,18 +65,8 @@ def login():
 
 @app.route('/search')
 def create_filter():
-    globalparams.pg_stands = []
-    globalparams.pg_databases = []
-    globalparams.pg_subsystems = []
     if session['login'] is None:
         return redirect(url_for('login'))
-    for row in db.session.query(HcsStands.stand_name).all():
-        globalparams.pg_stands.append(row[0])
-    for row in db.session.query(HcsSubsystems.database_name).distinct(HcsSubsystems.database_name).all():
-        globalparams.pg_databases.append(row[0])
-    for row in db.session.query(HcsSubsystems.subsystem_name).filter(
-            func.lower(HcsSubsystems.database_name) == 'hcshmdb').all():
-        globalparams.pg_subsystems.append(row[0])
     return render_template('filter_form.html',
                            user_name=session['user_name'],
                            pg_stands=globalparams.pg_stands,
@@ -197,6 +199,34 @@ def filters_list():
                            data=user_filters)
 
 
+@app.route('/filters', methods=['POST'])
+def filters_list_post():
+    if request.method == 'POST':
+        current_user_id = db.session.query(UserLoginInfo.id).filter(
+            func.lower(UserLoginInfo.login) == str(session['login']).lower()).all()[0][0]
+        filters_amount = db.session.query(UserFilters.id).filter(
+            UserFilters.user_id == current_user_id).count()
+        for index in range (1, filters_amount + 1):
+            if 'button-apply-' + str(index) in request.form:
+                filter_id = request.form.get('button-apply-' + str(index))
+                stands = str(db.session.execute("select stand_name from rgbotsm.hcs_stands\
+                                            where id in (select unnest(stand_id) from rgbotsm.user_filters\
+                                                         where id = " + filter_id + ");").fetchall())
+                databases = str(db.session.execute("select database_name from rgbotsm.hcs_subsystems\
+                                                            where id in (select unnest(subsystem_id) from rgbotsm.user_filters\
+                                                                         where id = " + filter_id + ");").fetchall())
+                duration = str(db.session.query(UserFilters.duration).filter(UserFilters.id == filter_id).all()[0][0])
+                return render_template('filter_form.html',
+                                       user_name=session['user_name'],
+                                       pg_stands=globalparams.pg_stands,
+                                       pg_databases=globalparams.pg_databases,
+                                       pg_subsystems=globalparams.pg_subsystems,
+                                       filter_stands=stands,
+                                       filter_databases=databases,
+                                       filter_duration=duration)
+    return '', 204
+
+
 @app.route('/jiraissues')
 def jira_issues():
     # fix ORM tuples (!)
@@ -223,7 +253,7 @@ def jira_issues():
 def jira_issues_post():
     if request.method == 'POST':
         jira_issues_amount = db.session.query(JiraTasks.id).count()
-        for index in range(1, jira_issues_amount):
+        for index in range(1, jira_issues_amount + 1):
             if 'button-reopen-' + str(index) in request.form:
                 issue_number = request.form.get("button-reopen-" + str(index))
                 jiratask.reopen_task(issue_number)

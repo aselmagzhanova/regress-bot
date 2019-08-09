@@ -113,9 +113,15 @@
                                         Stand
                                     </label>
                                     {% for stand in pg_stands %}
-                                        <label class="checkbox-inline">
-                                            <input name="checkbox-stand" type="checkbox" id="inlineCheckbox{{ stand }}" value="{{ stand }}"> {{ stand }}
-                                        </label>
+                                        {% if stand in filter_stands %}
+                                            <label class="checkbox-inline">
+                                                <input name="checkbox-stand" type="checkbox" id="inlineCheckbox{{ stand }}" value="{{ stand }}" checked> {{ stand }}
+                                            </label>
+                                        {% else %}
+                                            <label class="checkbox-inline">
+                                                <input name="checkbox-stand" type="checkbox" id="inlineCheckbox{{ stand }}" value="{{ stand }}"> {{ stand }}
+                                            </label>
+                                        {% endif %}
                                     {% endfor %}
                                 </div>
                                 <div class="form-group">
@@ -123,9 +129,15 @@
                                         Database
                                     </label>
                                     {% for database in pg_databases %}
-                                        <label class="checkbox-inline">
+                                        {% if database in filter_databases %}
+                                            <label class="checkbox-inline">
+                                            <input name="checkbox-database" type="checkbox" id="inlineCheckbox{{ database }}" value="{{ database }}" checked> {{ database }}
+                                        </label>
+                                        {% else %}
+                                            <label class="checkbox-inline">
                                             <input name="checkbox-database" type="checkbox" id="inlineCheckbox{{ database }}" value="{{ database }}"> {{ database }}
                                         </label>
+                                        {% endif %}
                                     {% endfor %}
                                 </div>
                                 <div class="form-group">
@@ -143,7 +155,7 @@
                                         Duration from
                                     </label>
                                     <div class="col-sm-10">
-                                        <input id="form-select-duration" type="text" class="form-control" name="duration" placeholder="ms" onkeyup="this.value=this.value.replace(/[^\d]/,'')">
+                                        <input id="form-select-duration" type="text" class="form-control" name="duration" placeholder="ms" onkeyup="this.value=this.value.replace(/[^\d]/,'')" value="{{ filter_duration }}">
                                     </div>
                                 </div>
                                 <div class="form-group">
