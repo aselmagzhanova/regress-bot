@@ -242,7 +242,7 @@ def user_info():
 
 @app.route('/links')
 def useful_links():
-    return render_template('FAQ.html')
+    return render_template('FAQ.html', user_name=session['user_name'])
 
 
 @app.errorhandler(404)
