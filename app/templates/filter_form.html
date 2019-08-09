@@ -161,11 +161,19 @@
                                 <div class="form-group">
                                     <label class="control-label col-md-3">Time range</label>
                                     <div class="col-md-4">
-                                        <div class="input-group input-large" data-date="01/01/2019" data-date-format="mm/dd/yyyy">
-                                            <input type="text" class="form-control dpd1" name="time-from">
-                                            <span class="input-group-addon">To</span>
-                                            <input type="text" class="form-control dpd2" name="time-to">
-                                        </div>
+                                        {% if filter_stands is defined or filter_databases is defined or filter_duration is defined %}
+                                            <div class="input-group input-large" data-date="01/01/2019" data-date-format="mm/dd/yyyy">
+                                                <input style="background-color: #f2dede; box-shadow: 0 0 8px #c9302c inset" type="text" class="form-control dpd1" name="time-from" required>
+                                                <span class="input-group-addon">To</span>
+                                                <input style="background-color: #f2dede; box-shadow: 0 0 8px #c9302c inset" type="text" class="form-control dpd2" name="time-to" required>
+                                            </div>
+                                        {% else %}
+                                            <div class="input-group input-large" data-date="01/01/2019" data-date-format="mm/dd/yyyy">
+                                                <input type="text" class="form-control dpd1" name="time-from" required>
+                                                <span class="input-group-addon">To</span>
+                                                <input type="text" class="form-control dpd2" name="time-to" required>
+                                            </div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 <!-- Search button -->
