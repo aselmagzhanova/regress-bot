@@ -233,7 +233,11 @@ def jira_issues_post():
 
 @app.route('/userinfo')
 def user_info():
-    return render_template('user_info.html')
+    user_info = db.session.execute(
+        "select * from rgbotsm.func_get_user_teams('" + session['login'].lower() + "');")
+    db.session.commit()
+    return render_template("user_info.html", user_name=session['user_name'],
+                           user_login=session['login'], data=user_info)
 
 
 @app.route('/links')
