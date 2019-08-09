@@ -224,6 +224,11 @@ def filters_list_post():
                                        filter_stands=stands,
                                        filter_databases=databases,
                                        filter_duration=duration)
+            if 'button-drop-' + str(index) in request.form:
+                filter_id = request.form.get('button-drop-' + str(index))
+                db.session.query(UserFilters).filter(UserFilters.id == filter_id).delete()
+                db.session.commit()
+                return redirect(url_for('filters_list'))
     return '', 204
 
 
