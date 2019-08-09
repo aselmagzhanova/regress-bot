@@ -97,7 +97,7 @@
         *********************************************************************************************************************************************************** -->
         <!--main content start-->
         <section id="main-content">
-            <form class="wrapper">
+            <section class="wrapper">
                 <div class="form-group" style="margin-top: 25px; margin-bottom: 85px">
                     <label class="col-sm-2 col-sm-2 control-label">
                         Search by issues:
@@ -175,11 +175,7 @@
                                             <td><span class="label label-success">Закрыт</span></td>
                                             <td>{{ row[6] | string | truncate(10, False, '') }}</td>
                                             <td>
-                                                <div class="btn-group">
-                                                    <button name="button-reopen-{{ loop.index }}" type="submit" class="btn btn-theme">
-                                                        Reopen
-                                                    </button>
-                                                </div>
+                                                <button name="button-reopen-{{ loop.index }}" type="submit" class="btn btn-theme" value="{{ row[5] }}">Reopen</button>
                                             </td>
                                         </tr>
                                     {% endfor %}

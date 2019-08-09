@@ -222,12 +222,12 @@ def jira_issues():
 @app.route('/jiraissues', methods=['POST'])
 def jira_issues_post():
     if request.method == 'POST':
-        if 'button-reopen-' + str(1) in request.form:
-            jira_issues_amount = db.session.query(JiraTasks.id).count()
-            return str(jira_issues_amount)
-        for index in range(1, len(jira_issues)+1):
+        jira_issues_amount = db.session.query(JiraTasks.id).count()
+        for index in range(1, jira_issues_amount):
             if 'button-reopen-' + str(index) in request.form:
-                return 'aaa'
+                issue_number = request.form.get("button-reopen-" + str(index))
+                jiratask.reopen_task(issue_number)
+                webbrowser.open_new_tab('https://hcs.jira.lanit.ru/browse/' + issue_number)
     return '', 204
 
 

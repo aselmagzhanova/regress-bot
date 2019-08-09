@@ -135,3 +135,6 @@ def reopen_task(issue_number):
     jira_conn()
     jira_conn_object = jira
     jira_conn_object.transition_issue(issue_number, transition='На анализ')
+    current_issue = jira_conn_object.issue(issue_number)
+    teamlead = current_issue.raw['fields']['customfield_10828']['name']
+    jira_conn_object.assign_issue(issue_number, teamlead)
