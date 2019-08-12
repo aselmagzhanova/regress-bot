@@ -78,21 +78,25 @@ def create_filter():
 def create_filter_post():
     if request.method == 'POST':
         if 'button-search' in request.form:
-            if request.form.getlist('checkbox-stand') is not None:
+            if len(request.form.getlist('checkbox-stand')) is not 0:
                 globalparams.es_input_data['elastic_stand'] = request.form.getlist('checkbox-stand')
-            if request.form.getlist('checkbox-database') is not None:
+            if len(request.form.getlist('checkbox-database')) is not 0:
                 globalparams.es_input_data['elastic_database'] = request.form.getlist('checkbox-database')
-            if request.form.getlist('checkbox-subsystem') is not None:
-                globalparams.es_input_data['elastic_subsystem'] = request.form.getlist('checkbox-subsystem')
+                # if hm in checked databases then get subsystem(s), if None then just drop hm (equals it is not checked without subsystem)
+                if 'hcshmdb' in globalparams.es_input_data['elastic_database']:
+                    if len(request.form.getlist('checkbox-subsystem')) is not 0:
+                        globalparams.es_input_data['elastic_subsystem'] = request.form.getlist('checkbox-subsystem')
+                    else:
+                        globalparams.es_input_data['elastic_database'].remove('hcshmdb')
             if request.form['duration'] is not '':
                 globalparams.es_input_data['elastic_duration'] = request.form['duration']
-            if request.form['time-from'] and request.form['time-to'] is not '':
+            if request.form['time-from'] is not '' and request.form['time-to'] is not '':
                 globalparams.es_input_data['elastic_time_range'] = [request.form['time-from'], request.form['time-to']]
             return redirect(url_for('search_result'))
         if 'button-save-filter' in request.form:
-            if request.form.getlist('checkbox-stand') is not None:
+            if len(request.form.getlist('checkbox-stand')) is not 0:
                 user_filter_stand = request.form.getlist('checkbox-stand')
-            if request.form.getlist('checkbox-database') is not None:
+            if len(request.form.getlist('checkbox-database')) is not 0:
                 user_filter_subsystem = request.form.getlist('checkbox-database')
             if request.form['duration'] is not '':
                 user_filter_duration = request.form['duration']
