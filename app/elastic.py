@@ -32,6 +32,7 @@ def get_elastic_regress_result():
     date_range = parse_date()
     es_dict = {}
     if globalparams.es_input_data['elastic_time_range'][0] is not "*":
+        index = 1
         for index_date in date_range:
             print(config['elastic']['index'] + index_date)
             # check conn
@@ -73,7 +74,7 @@ def get_elastic_regress_result():
                         }
                     }
                 }, request_timeout=1)
-                index = 1
+                print("hits " + str(index) + " len = " + str(len(es_conn_hits)))
                 for hit in es_conn_hits['hits']['hits']:
                     es_dict[index] = {'elastic_query_hash': hit["_source"]["statement_hash"],
                                       'elastic_query_params': 'null',
@@ -83,9 +84,9 @@ def get_elastic_regress_result():
                                       'elastic_query_duration': hit["_source"]["duration"],
                                       'elastic_query_date': hit["_source"]["pgtime"]}
                     index += 1
-                print("LEN: " + str(len(es_conn_hits)))
             except elasticsearch.ConnectionError:
                 print("ES connection error")
+        print("LEN: " + str(len(es_dict)))
     return es_dict
 
 
