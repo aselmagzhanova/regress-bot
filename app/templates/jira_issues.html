@@ -172,7 +172,7 @@
                                             <td>{{ row[3] }}</td>
                                             <td>{{ row[4] }}</td>
                                             <td><a href="https://hcs.jira.lanit.ru/browse/{{ row[5] }}" target="_blank">{{ row[5] }}</a></td>
-                                            {% if issues_statuses[row[5]] == 'Закрыт' %}
+                                            {% if issues_statuses[row[5]] == 'Закрыт' or issues_statuses[row[5]] == 'Отменен' %}
                                                 <td><span class="label label-success">{{ issues_statuses[row[5]] }}</span></td>
                                                 <td>{{ row[6] | string | truncate(10, False, '') }}</td>
                                                 <td>

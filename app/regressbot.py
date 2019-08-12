@@ -22,6 +22,27 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://%s:%s@%s:%s/%s' % (config[
 
 db = SQLAlchemy(app)
 
+# вынесла сюда, чтобы снизить время ожидания ответа от жиры
+# теперь обновление списка задач и статусов будет происходить только при переоткрытии
+globalparams.jira_issues = db.session.execute(
+    "select hst.stand_name,\
+            hsb.database_name,\
+            hsb.subsystem_name,\
+            jt.statement_text,\
+            jt.duration,\
+            jt.issue_number,\
+            jt.creation_date\
+     from rgbotsm.jira_tasks jt\
+     inner join rgbotsm.hcs_subsystems hsb\
+     on jt.subsystem_id = hsb.id\
+     inner join rgbotsm.hcs_stands hst\
+     on jt.stand_id = hst.id;")
+db.session.commit()
+# костыль
+globalparams.issues_statuses = {}
+for row in db.session.query(JiraTasks.issue_number).all():
+    globalparams.issues_statuses[str(row[0])] = str(jiratask.return_status(str(row[0])))
+
 
 @app.route('/')
 def root():
@@ -307,26 +328,26 @@ def filters_list_post():
 @app.route('/jiraissues')
 def jira_issues():
     # fix ORM tuples (!)
-    jira_issues = db.session.execute(
-        "select hst.stand_name,\
-                hsb.database_name,\
-                hsb.subsystem_name,\
-                jt.statement_text,\
-                jt.duration,\
-                jt.issue_number,\
-                jt.creation_date\
-         from rgbotsm.jira_tasks jt\
-         inner join rgbotsm.hcs_subsystems hsb\
-         on jt.subsystem_id = hsb.id\
-         inner join rgbotsm.hcs_stands hst\
-         on jt.stand_id = hst.id;")
-    db.session.commit()
-    # костыль
-    issues_statuses = {}
-    for row in db.session.query(JiraTasks.issue_number).all():
-        issues_statuses[str(row[0])] = str(jiratask.return_status(str(row[0])))
+    # globalparams.jira_issues = db.session.execute(
+    #     "select hst.stand_name,\
+    #             hsb.database_name,\
+    #             hsb.subsystem_name,\
+    #             jt.statement_text,\
+    #             jt.duration,\
+    #             jt.issue_number,\
+    #             jt.creation_date\
+    #      from rgbotsm.jira_tasks jt\
+    #      inner join rgbotsm.hcs_subsystems hsb\
+    #      on jt.subsystem_id = hsb.id\
+    #      inner join rgbotsm.hcs_stands hst\
+    #      on jt.stand_id = hst.id;")
+    # db.session.commit()
+    # # костыль
+    # globalparams.issues_statuses = {}
+    # for row in db.session.query(JiraTasks.issue_number).all():
+    #     globalparams.issues_statuses[str(row[0])] = str(jiratask.return_status(str(row[0])))
     return render_template("jira_issues.html", user_name=session['user_name'],
-                           jira_issues=jira_issues, issues_statuses=issues_statuses)
+                           jira_issues=globalparams.jira_issues, issues_statuses=globalparams.issues_statuses)
 
 
 @app.route('/jiraissues', methods=['POST'])
@@ -338,6 +359,25 @@ def jira_issues_post():
                 issue_number = request.form.get("button-reopen-" + str(index))
                 jiratask.reopen_task(issue_number)
                 webbrowser.open_new_tab('https://hcs.jira.lanit.ru/browse/' + issue_number)
+                # см. строку 27
+                globalparams.jira_issues = db.session.execute(
+                    "select hst.stand_name,\
+                            hsb.database_name,\
+                            hsb.subsystem_name,\
+                            jt.statement_text,\
+                            jt.duration,\
+                            jt.issue_number,\
+                            jt.creation_date\
+                     from rgbotsm.jira_tasks jt\
+                     inner join rgbotsm.hcs_subsystems hsb\
+                     on jt.subsystem_id = hsb.id\
+                     inner join rgbotsm.hcs_stands hst\
+                     on jt.stand_id = hst.id;")
+                db.session.commit()
+                # костыль
+                globalparams.issues_statuses = {}
+                for row in db.session.query(JiraTasks.issue_number).all():
+                    globalparams.issues_statuses[str(row[0])] = str(jiratask.return_status(str(row[0])))
                 return redirect(url_for('jira_issues'))
     return '', 204
 

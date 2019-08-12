@@ -28,3 +28,5 @@ es_output_data = {}
 ### JIRA + PG TASK ADD PARAMS ##########################################################################################
 pg_team_lineup = {}
 pg_query_explain = ''
+jira_issues = []
+issues_statuses = {}
