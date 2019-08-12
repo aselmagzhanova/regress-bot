@@ -125,7 +125,11 @@
                                         <tr>
                                             <td>{{ value["elastic_query_stand"] }}</td>
                                             <td>{{ value["elastic_query_database"] }}</td>
-                                            <td>какая-то подсистема</td>
+                                            {% if value["elastic_query_database"] == 'hcshmdb' %}
+                                                <td>задача заводится на группу подсистемы {{ subsystem }}</td>
+                                            {% else %}
+                                                <td></td>
+                                            {% endif %}
                                             <td>{{ value["elastic_query_text"] }}</td>
                                             <td>{{ value["elastic_query_duration"] }}</td>
                                             {% if pg_data[value["elastic_query_hash"]] %}

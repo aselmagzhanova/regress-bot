@@ -125,10 +125,12 @@ def search_result():
     pg_data = {}
     for row in db.session.query(JiraTasks.statement_hash, JiraTasks.issue_number).all():
         pg_data[row[0]] = row[1]
+    subsystem = globalparams.es_input_data['elastic_subsystem'][0]
     return render_template('filter_result.html',
                            user_name=session['user_name'],
                            es_output_data=globalparams.es_output_data,
-                           pg_data=pg_data)
+                           pg_data=pg_data,
+                           subsystem=subsystem)
 
 
 @app.route('/searchresult', methods=['GET', 'POST'])

@@ -83,6 +83,7 @@ def get_elastic_regress_result():
                                       'elastic_query_duration': hit["_source"]["duration"],
                                       'elastic_query_date': hit["_source"]["pgtime"]}
                     index += 1
+                print("LEN: " + str(len(es_conn_hits)))
             except elasticsearch.ConnectionError:
                 print("ES connection error")
     return es_dict
