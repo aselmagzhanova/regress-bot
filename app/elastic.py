@@ -17,9 +17,9 @@ def create_elastic_conn():
 def parse_date():
     date_range = []
     if globalparams.es_input_data['elastic_time_range'][0] is not "*":
-        start_date_ref = datetime.strptime(globalparams.es_input_data['elastic_time_range'][0], '%m/%d/%Y')
+        start_date_ref = datetime.strptime(globalparams.es_input_data['elastic_time_range'][0], '%Y-%m-%d')
         start_date = date(start_date_ref.year, start_date_ref.month, start_date_ref.day)
-        end_date_ref = datetime.strptime(globalparams.es_input_data['elastic_time_range'][1], '%m/%d/%Y')
+        end_date_ref = datetime.strptime(globalparams.es_input_data['elastic_time_range'][1], '%Y-%m-%d')
         end_date = date(end_date_ref.year, end_date_ref.month, end_date_ref.day)
         delta = end_date - start_date
         for i in range(delta.days + 1):
@@ -79,7 +79,8 @@ def get_elastic_regress_result():
                             "filter": {
                                 "range": {
                                     "duration": {
-                                        "gte": globalparams.es_input_data['elastic_duration']
+                                        "gte": globalparams.es_input_data['elastic_duration'],
+                                        "lte": 99999999
                                     }
                                 }
                             }
@@ -89,15 +90,28 @@ def get_elastic_regress_result():
                 print("hits " + str(index) + " len = " + str(len(es_conn_hits)))
                 for hit in es_conn_hits['hits']['hits']:
                     if hit["_source"]["statement_hash"] not in queries_hash:
-                        es_dict[index] = {'elastic_query_hash': hit["_source"]["statement_hash"],
-                                          'elastic_query_params': 'null',
-                                          'elastic_query_stand': hit["_source"]["stand"],
-                                          'elastic_query_database': hit["_source"]["database"],
-                                          'elastic_query_text': hit["_source"]["statement"],
-                                          'elastic_query_duration': hit["_source"]["duration"],
-                                          'elastic_query_date': hit["_source"]["pgtime"],
-                                          'elastic_query_transactionid': hit["_source"]["transactionID"]}
+                        es_dict[hit["_source"]["statement_hash"]] = {
+                            'elastic_query_hash': hit["_source"]["statement_hash"],
+                            'elastic_query_params': 'null',
+                            'elastic_query_stand': hit["_source"]["stand"],
+                            'elastic_query_database': hit["_source"]["database"],
+                            'elastic_query_text': hit["_source"]["statement"],
+                            'elastic_query_duration': hit["_source"]["duration"],
+                            'elastic_query_date': hit["_source"]["pgtime"],
+                            'elastic_query_transactionid': hit["_source"]["transactionID"]}
                         queries_hash.append(hit["_source"]["statement_hash"])
+                    else:
+                        if hit["_source"]["duration"] > es_dict[hit["_source"]["statement_hash"]]['elastic_query_duration']:
+                            es_dict.pop(hit["_source"]["statement_hash"])
+                            es_dict[hit["_source"]["statement_hash"]] = {
+                                'elastic_query_hash': hit["_source"]["statement_hash"],
+                                'elastic_query_params': 'null',
+                                'elastic_query_stand': hit["_source"]["stand"],
+                                'elastic_query_database': hit["_source"]["database"],
+                                'elastic_query_text': hit["_source"]["statement"],
+                                'elastic_query_duration': hit["_source"]["duration"],
+                                'elastic_query_date': hit["_source"]["pgtime"],
+                                'elastic_query_transactionid': hit["_source"]["transactionID"]}
                     index += 1
             except elasticsearch.ConnectionError:
                 print("ES connection error")
@@ -105,6 +119,4 @@ def get_elastic_regress_result():
     return es_dict
 
 
-# es_dict = get_elastic_regress_result()
-
-print(get_voshod_indices())
+es_dict = get_elastic_regress_result()

@@ -24,24 +24,24 @@ db = SQLAlchemy(app)
 
 # вынесла сюда, чтобы снизить время ожидания ответа от жиры
 # теперь обновление списка задач и статусов будет происходить только при переоткрытии
-globalparams.jira_issues = db.session.execute(
-    "select hst.stand_name,\
-            hsb.database_name,\
-            hsb.subsystem_name,\
-            jt.statement_text,\
-            jt.duration,\
-            jt.issue_number,\
-            jt.creation_date\
-     from rgbotsm.jira_tasks jt\
-     inner join rgbotsm.hcs_subsystems hsb\
-     on jt.subsystem_id = hsb.id\
-     inner join rgbotsm.hcs_stands hst\
-     on jt.stand_id = hst.id;")
-db.session.commit()
-# костыль
-globalparams.issues_statuses = {}
-for row in db.session.query(JiraTasks.issue_number).all():
-    globalparams.issues_statuses[str(row[0])] = str(jiratask.return_status(str(row[0])))
+# globalparams.jira_issues = db.session.execute(
+#     "select hst.stand_name,\
+#             hsb.database_name,\
+#             hsb.subsystem_name,\
+#             jt.statement_text,\
+#             jt.duration,\
+#             jt.issue_number,\
+#             jt.creation_date\
+#      from rgbotsm.jira_tasks jt\
+#      inner join rgbotsm.hcs_subsystems hsb\
+#      on jt.subsystem_id = hsb.id\
+#      inner join rgbotsm.hcs_stands hst\
+#      on jt.stand_id = hst.id;")
+# db.session.commit()
+# # костыль
+# globalparams.issues_statuses = {}
+# for row in db.session.query(JiraTasks.issue_number).all():
+#     globalparams.issues_statuses[str(row[0])] = str(jiratask.return_status(str(row[0])))
 
 
 @app.route('/')
@@ -88,11 +88,15 @@ def login():
 def create_filter():
     if session['login'] is None:
         return redirect(url_for('login'))
+    time_range = elastic.get_voshod_indices()
+    print(time_range)
     return render_template('filter_form.html',
                            user_name=session['user_name'],
                            pg_stands=globalparams.pg_stands,
                            pg_databases=globalparams.pg_databases,
-                           pg_subsystems=globalparams.pg_subsystems)
+                           pg_subsystems=globalparams.pg_subsystems,
+                           min_date=time_range[0][7:].replace('.', '-'),
+                           max_date=time_range[1][7:].replace('.', '-'))
 
 
 @app.route('/search', methods=['POST'])
@@ -309,6 +313,7 @@ def filters_list_post():
                                                             where id in (select unnest(subsystem_id) from rgbotsm.user_filters\
                                                                          where id = " + filter_id + ");").fetchall())
                 duration = str(db.session.query(UserFilters.duration).filter(UserFilters.id == filter_id).all()[0][0])
+                time_range = elastic.get_voshod_indices()
                 return render_template('filter_form.html',
                                        user_name=session['user_name'],
                                        pg_stands=globalparams.pg_stands,
@@ -316,7 +321,9 @@ def filters_list_post():
                                        pg_subsystems=globalparams.pg_subsystems,
                                        filter_stands=stands,
                                        filter_databases=databases,
-                                       filter_duration=duration)
+                                       filter_duration=duration,
+                                       min_date=time_range[0][7:].replace('.', '-'),
+                                       max_date=time_range[1][7:].replace('.', '-'))
             if 'button-drop-' + str(index) in request.form:
                 filter_id = request.form.get('button-drop-' + str(index))
                 db.session.query(UserFilters).filter(UserFilters.id == filter_id).delete()
