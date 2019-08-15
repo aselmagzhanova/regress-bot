@@ -328,24 +328,24 @@ def filters_list_post():
 @app.route('/jiraissues')
 def jira_issues():
     # fix ORM tuples (!)
-    # globalparams.jira_issues = db.session.execute(
-    #     "select hst.stand_name,\
-    #             hsb.database_name,\
-    #             hsb.subsystem_name,\
-    #             jt.statement_text,\
-    #             jt.duration,\
-    #             jt.issue_number,\
-    #             jt.creation_date\
-    #      from rgbotsm.jira_tasks jt\
-    #      inner join rgbotsm.hcs_subsystems hsb\
-    #      on jt.subsystem_id = hsb.id\
-    #      inner join rgbotsm.hcs_stands hst\
-    #      on jt.stand_id = hst.id;")
-    # db.session.commit()
-    # # костыль
-    # globalparams.issues_statuses = {}
-    # for row in db.session.query(JiraTasks.issue_number).all():
-    #     globalparams.issues_statuses[str(row[0])] = str(jiratask.return_status(str(row[0])))
+    globalparams.jira_issues = db.session.execute(
+        "select hst.stand_name,\
+                hsb.database_name,\
+                hsb.subsystem_name,\
+                jt.statement_text,\
+                jt.duration,\
+                jt.issue_number,\
+                jt.creation_date\
+         from rgbotsm.jira_tasks jt\
+         inner join rgbotsm.hcs_subsystems hsb\
+         on jt.subsystem_id = hsb.id\
+         inner join rgbotsm.hcs_stands hst\
+         on jt.stand_id = hst.id;")
+    db.session.commit()
+    # костыль
+    globalparams.issues_statuses = {}
+    for row in db.session.query(JiraTasks.issue_number).all():
+        globalparams.issues_statuses[str(row[0])] = str(jiratask.return_status(str(row[0])))
     return render_template("jira_issues.html", user_name=session['user_name'],
                            jira_issues=globalparams.jira_issues, issues_statuses=globalparams.issues_statuses)
 
