@@ -27,6 +27,17 @@ def parse_date():
     return date_range
 
 
+def get_voshod_indices():
+    es = create_elastic_conn()
+    indices_dates = []
+    for index in es.indices.get(config['elastic']['index'] + '*'):
+        indices_dates.append(datetime.strptime(index[7:], '%Y.%m.%d'))
+    indices_range = []
+    indices_range.append('voshod-' + min(indices_dates).strftime('%Y.%m.%d'))
+    indices_range.append('voshod-' + max(indices_dates).strftime('%Y.%m.%d'))
+    return indices_range
+
+
 def get_elastic_regress_result():
     es = create_elastic_conn()
     date_range = parse_date()
@@ -94,4 +105,6 @@ def get_elastic_regress_result():
     return es_dict
 
 
-es_dict = get_elastic_regress_result()
+# es_dict = get_elastic_regress_result()
+
+print(get_voshod_indices())
