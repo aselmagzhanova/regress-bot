@@ -3,6 +3,7 @@ from flask import flash, Flask, redirect, render_template, request, session, url
 from flask_sqlalchemy import SQLAlchemy
 import globalparams
 import jiratask
+import kibana
 from Model import HcsStands, HcsSubsystems, JiraTasks, UserFilters, UserLoginInfo
 from sqlalchemy import func
 import webbrowser
@@ -139,6 +140,20 @@ def create_filter_post():
                 db.session.commit()
             except():
                 redirect(url_for('error_500'))
+        if 'button-kibana' in request.form:
+            if len(request.form.getlist('checkbox-stand')) is not 0:
+                globalparams.es_input_data['elastic_stand'] = request.form.getlist('checkbox-stand')
+            if len(request.form.getlist('checkbox-database')) is not 0:
+                globalparams.es_input_data['elastic_database'] = request.form.getlist('checkbox-database')
+            if request.form['duration'] is not '':
+                globalparams.es_input_data['elastic_duration'] = request.form['duration']
+            if request.form['time-from'] is not '' and request.form['time-to'] is not '':
+                globalparams.es_input_data['elastic_time_range'] = [request.form['time-from'], request.form['time-to']]
+            link_text = kibana.return_kibana_link(globalparams.es_input_data['elastic_time_range'],
+                                                  globalparams.es_input_data['elastic_stand'],
+                                                  globalparams.es_input_data['elastic_database'],
+                                                  int(globalparams.es_input_data['elastic_duration']))
+            webbrowser.open_new_tab(link_text)
     return '', 204
 
 
