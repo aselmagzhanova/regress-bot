@@ -104,6 +104,11 @@ def create_filter():
 def create_filter_post():
     if request.method == 'POST':
         if 'button-search' in request.form:
+            globalparams.es_input_data['elastic_stand'].clear()
+            globalparams.es_input_data['elastic_database'].clear()
+            globalparams.es_input_data['elastic_subsystem'].clear()
+            globalparams.es_input_data['elastic_duration'] = 0
+            globalparams.es_input_data['elastic_time_range'].clear()
             if len(request.form.getlist('checkbox-stand')) is not 0:
                 globalparams.es_input_data['elastic_stand'] = request.form.getlist('checkbox-stand')
             if len(request.form.getlist('checkbox-database')) is not 0:
@@ -120,6 +125,9 @@ def create_filter_post():
                 globalparams.es_input_data['elastic_time_range'] = [request.form['time-from'], request.form['time-to']]
             return redirect(url_for('search_result'))
         if 'button-save-filter' in request.form:
+            globalparams.es_input_data['elastic_stand'].clear()
+            globalparams.es_input_data['elastic_database'].clear()
+            globalparams.es_input_data['elastic_duration'] = 0
             if len(request.form.getlist('checkbox-stand')) is not 0:
                 user_filter_stand = request.form.getlist('checkbox-stand')
             if len(request.form.getlist('checkbox-database')) is not 0:
@@ -141,6 +149,10 @@ def create_filter_post():
             except():
                 redirect(url_for('error_500'))
         if 'button-kibana' in request.form:
+            globalparams.es_input_data['elastic_stand'].clear()
+            globalparams.es_input_data['elastic_database'].clear()
+            globalparams.es_input_data['elastic_duration'] = 0
+            globalparams.es_input_data['elastic_time_range'].clear()
             if len(request.form.getlist('checkbox-stand')) is not 0:
                 globalparams.es_input_data['elastic_stand'] = request.form.getlist('checkbox-stand')
             if len(request.form.getlist('checkbox-database')) is not 0:

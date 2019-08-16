@@ -30,23 +30,29 @@ def return_kibana_link(time_range, stands, databases, duration):
                    "params:(query:postgres,type:phrase),type:phrase,value:postgres),query:(match:(program:" +\
                    "(query:postgres,type:phrase)))),('$state':(store:appState),"
     # выбираем стенды
-    stands_text = "meta:(alias:!n,disabled:!f,index:'13424010-51ff-11e9-91f0-ef29dfee514f',key:stand,negate:!f,params:!" +\
-                  "(" + ','.join(stands) + "),type:phrases,value:'" + stands[0]
-    for stand in stands[1:]:
-        stands_text = stands_text + ",%20" + stand
-    stands_text = stands_text + "'),query:(bool:(minimum_should_match:1,should:!((match_phrase:(stand:" + stands[0] + "))"
-    for stand in stands[1:]:
-        stands_text = stands_text + ",(match_phrase:(stand:" + stand + "))"
-    stands_text = stands_text + ")))),('$state':(store:appState),"
+    if len(stands) is not 0:
+        stands_text = "meta:(alias:!n,disabled:!f,index:'13424010-51ff-11e9-91f0-ef29dfee514f',key:stand,negate:!f,params:!" +\
+                      "(" + ','.join(stands) + "),type:phrases,value:'" + stands[0]
+        for stand in stands[1:]:
+            stands_text = stands_text + ",%20" + stand
+        stands_text = stands_text + "'),query:(bool:(minimum_should_match:1,should:!((match_phrase:(stand:" + stands[0] + "))"
+        for stand in stands[1:]:
+            stands_text = stands_text + ",(match_phrase:(stand:" + stand + "))"
+        stands_text = stands_text + ")))),('$state':(store:appState),"
+    else:
+        stands_text = ""
     # выбираем базы
-    databases_text = "meta:(alias:!n,disabled:!f,index:'13424010-51ff-11e9-91f0-ef29dfee514f',key:database,negate:!f,params:!" +\
-                     "(" + ','.join(databases) + "),type:phrases,value:'" + databases[0]
-    for database in databases[1:]:
-        databases_text = databases_text + ",%20" + database
-    databases_text = databases_text + "'),query:(bool:(minimum_should_match:1,should:!((match_phrase:(database:" + databases[0] + "))"
-    for database in databases[1:]:
-        databases_text = databases_text + ",(match_phrase:(database:" + database + "))"
-    databases_text = databases_text + ")))),('$state':(store:appState),"
+    if len(databases) is not 0:
+        databases_text = "meta:(alias:!n,disabled:!f,index:'13424010-51ff-11e9-91f0-ef29dfee514f',key:database,negate:!f,params:!" +\
+                         "(" + ','.join(databases) + "),type:phrases,value:'" + databases[0]
+        for database in databases[1:]:
+            databases_text = databases_text + ",%20" + database
+        databases_text = databases_text + "'),query:(bool:(minimum_should_match:1,should:!((match_phrase:(database:" + databases[0] + "))"
+        for database in databases[1:]:
+            databases_text = databases_text + ",(match_phrase:(database:" + database + "))"
+        databases_text = databases_text + ")))),('$state':(store:appState),"
+    else:
+        databases_text = ""
     # выбираем индексы (== дату)
     indices_text = "meta:(alias:!n,disabled:!f,index:'13424010-51ff-11e9-91f0-ef29dfee514f',key:_index,negate:!f,params:!" +\
                    "(" + ','.join(indices) + "),type:phrases,value:'" + indices[0]
