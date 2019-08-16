@@ -49,12 +49,15 @@ globalparams.pg_databases = []
 globalparams.pg_subsystems = []
 for row in db.session.query(HcsStands.stand_name).order_by(HcsStands.stand_name).all():
     globalparams.pg_stands.append(row[0])
+db.session.commit()
 for row in db.session.query(HcsSubsystems.database_name).distinct(HcsSubsystems.database_name).order_by(
         HcsSubsystems.database_name).all():
     globalparams.pg_databases.append(row[0])
+db.session.commit()
 for row in db.session.query(HcsSubsystems.subsystem_name).filter(
         func.lower(HcsSubsystems.database_name) == 'hcshmdb').order_by(HcsSubsystems.subsystem_name).all():
     globalparams.pg_subsystems.append(row[0])
+db.session.commit()
 
 
 @app.route('/')
@@ -68,15 +71,18 @@ def login():
         # check login
         session['login'] = int(db.session.query(UserLoginInfo).filter(
             func.lower(UserLoginInfo.login) == str(request.form['input-login']).lower()).count())
+        db.session.commit()
         if session['login'] == 1:
             # check password
             session['password'] = str((db.session.query(
                 func.rgbotsm.func_user_auth(str(request.form['input-login']),
                                             str(request.form['input-password']))).all())[0][0])
+            db.session.commit()
             if session['password'] == 'True':
                 session['login'] = str(request.form['input-login']).lower()
                 session['user_name'] = str(db.session.query(
                     func.rgbotsm.func_get_user_name(session['login'])).first()[0])
+                db.session.commit()
                 return redirect(url_for('create_filter'))
             else:
                 flash('Wrong password!')
@@ -177,6 +183,7 @@ def search_result():
     pg_data = {}
     for row in db.session.query(JiraTasks.statement_hash, JiraTasks.issue_number).all():
         pg_data[row[0]] = row[1]
+    db.session.commit()
     if len(globalparams.es_input_data['elastic_subsystem']) is not 0:
         subsystem = globalparams.es_input_data['elastic_subsystem'][0]
     else:
@@ -322,6 +329,7 @@ def search_result_post():
 def filters_list():
     user_filters = db.session.execute(
         "select * from rgbotsm.func_create_filter_description_user_level('" + session['login'].lower() + "');")
+    db.session.commit()
     return render_template("filters_list.html", user_name=session['user_name'],
                            data=user_filters)
 
@@ -331,18 +339,23 @@ def filters_list_post():
     if request.method == 'POST':
         current_user_id = db.session.query(UserLoginInfo.id).filter(
             func.lower(UserLoginInfo.login) == str(session['login']).lower()).all()[0][0]
+        db.session.commit()
         filters_amount = db.session.query(UserFilters.id).filter(
             UserFilters.user_id == current_user_id).count()
+        db.session.commit()
         for index in range (1, filters_amount + 1):
             if 'button-apply-' + str(index) in request.form:
                 filter_id = request.form.get('button-apply-' + str(index))
                 stands = str(db.session.execute("select stand_name from rgbotsm.hcs_stands\
                                             where id in (select unnest(stand_id) from rgbotsm.user_filters\
                                                          where id = " + filter_id + ");").fetchall())
+                db.session.commit()
                 databases = str(db.session.execute("select database_name from rgbotsm.hcs_subsystems\
                                                             where id in (select unnest(subsystem_id) from rgbotsm.user_filters\
                                                                          where id = " + filter_id + ");").fetchall())
+                db.session.commit()
                 duration = str(db.session.query(UserFilters.duration).filter(UserFilters.id == filter_id).all()[0][0])
+                db.session.commit()
                 time_range = elastic.get_voshod_indices()
                 return render_template('filter_form.html',
                                        user_name=session['user_name'],
@@ -383,6 +396,7 @@ def jira_issues():
     globalparams.issues_statuses = {}
     for row in db.session.query(JiraTasks.issue_number).all():
         globalparams.issues_statuses[str(row[0])] = str(jiratask.return_status(str(row[0])))
+    db.session.commit()
     return render_template("jira_issues.html", user_name=session['user_name'],
                            jira_issues=globalparams.jira_issues, issues_statuses=globalparams.issues_statuses)
 
@@ -391,6 +405,7 @@ def jira_issues():
 def jira_issues_post():
     if request.method == 'POST':
         jira_issues_amount = db.session.query(JiraTasks.id).count()
+        db.session.commit()
         for index in range(1, jira_issues_amount + 1):
             if 'button-reopen-' + str(index) in request.form:
                 issue_number = request.form.get("button-reopen-" + str(index))
@@ -415,6 +430,7 @@ def jira_issues_post():
                 globalparams.issues_statuses = {}
                 for row in db.session.query(JiraTasks.issue_number).all():
                     globalparams.issues_statuses[str(row[0])] = str(jiratask.return_status(str(row[0])))
+                db.session.commit()
                 return redirect(url_for('jira_issues'))
     return '', 204
 
