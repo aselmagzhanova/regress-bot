@@ -163,7 +163,7 @@ def create_filter_post():
                 globalparams.es_input_data['elastic_time_range'] = [request.form['time-from'], request.form['time-to']]
             link_text = kibana.return_kibana_link(globalparams.es_input_data['elastic_time_range'],
                                                   globalparams.es_input_data['elastic_stand'],
-                                                   globalparams.es_input_data['elastic_database'],
+                                                  globalparams.es_input_data['elastic_database'],
                                                   int(globalparams.es_input_data['elastic_duration']))
             return redirect(link_text)
     return '', 204

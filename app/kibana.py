@@ -20,7 +20,7 @@ def return_elastic_indices_names(time_range):
 # это очень костыльно, но нет апи
 def return_kibana_link(time_range, stands, databases, duration):
     # собираем названия инлдексов
-    indices = return_elastic_indices_names(time_range)
+    # indices = return_elastic_indices_names(time_range)
     # выбираем последние 30 дней для показа результатов
     link_text = "https://ft01.dom.test.gosuslugi.ru/kibana/app/kibana#/discover?_g=(refreshInterval:" +\
                 "(pause:!t,value:0),time:(from:now-30d,mode:quick,to:now))&_" +\
@@ -54,14 +54,18 @@ def return_kibana_link(time_range, stands, databases, duration):
     else:
         databases_text = ""
     # выбираем индексы (== дату)
-    indices_text = "meta:(alias:!n,disabled:!f,index:'13424010-51ff-11e9-91f0-ef29dfee514f',key:_index,negate:!f,params:!" +\
-                   "(" + ','.join(indices) + "),type:phrases,value:'" + indices[0]
-    for index in indices[1:]:
-        indices_text = indices_text + ",%20" + index
-    indices_text = indices_text + "'),query:(bool:(minimum_should_match:1,should:!((match_phrase:(_index:" + indices[0] + "))"
-    for index in indices[1:]:
-        indices_text = indices_text + ",(match_phrase:(_index:" + index + "))"
-    indices_text = indices_text + ")))),('$state':(store:appState),"
+    # indices_text = "meta:(alias:!n,disabled:!f,index:'13424010-51ff-11e9-91f0-ef29dfee514f',key:_index,negate:!f,params:!" +\
+    #                "(" + ','.join(indices) + "),type:phrases,value:'" + indices[0]
+    # for index in indices[1:]:
+    #     indices_text = indices_text + ",%20" + index
+    # indices_text = indices_text + "'),query:(bool:(minimum_should_match:1,should:!((match_phrase:(_index:" + indices[0] + "))"
+    # for index in indices[1:]:
+    #     indices_text = indices_text + ",(match_phrase:(_index:" + index + "))"
+    # indices_text = indices_text + ")))),('$state':(store:appState),"
+    time_text = "meta:(alias:!n,disabled:!f,index:'13424010-51ff-11e9-91f0-ef29dfee514f',key:'@timestamp',negate:!f,params:" + \
+                "(gte:'" + time_range[0] + "',lt:'" + time_range[1] + "'),type:range,value:'" + time_range[0] + \
+                "%2000:00:00.000%20to%20" + time_range[1] + "%2000:00:00.000'),range:('@timestamp':" + \
+                "(gte:'" + time_range[0] + "',lt:'" + time_range[1] + "')))),z"
     # выбираем длительность запроса
     duration_text = "meta:(alias:!n,disabled:!f,index:'13424010-51ff-11e9-91f0-ef29dfee514f',key:duration,negate:!f,params:" +\
                     "(gte:" + str(duration) + ",lt:99999999),type:range,value:'"
@@ -72,4 +76,4 @@ def return_kibana_link(time_range, stands, databases, duration):
     duration_text = duration_text + "range:(duration:(gte:" + str(duration) + ",lt:99999999)))),"
     # выбираем сортировку
     sort_text = "index:'13424010-51ff-11e9-91f0-ef29dfee514f',interval:auto,query:(language:lucene,query:''),sort:!('@timestamp',desc))"
-    return link_text + program_text + stands_text + databases_text + indices_text + duration_text + sort_text
+    return link_text + program_text + stands_text + databases_text + time_text + duration_text + sort_text
