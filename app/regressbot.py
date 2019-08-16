@@ -44,6 +44,19 @@ db = SQLAlchemy(app)
 #     globalparams.issues_statuses[str(row[0])] = str(jiratask.return_status(str(row[0])))
 
 
+globalparams.pg_stands = []
+globalparams.pg_databases = []
+globalparams.pg_subsystems = []
+for row in db.session.query(HcsStands.stand_name).order_by(HcsStands.stand_name).all():
+    globalparams.pg_stands.append(row[0])
+for row in db.session.query(HcsSubsystems.database_name).distinct(HcsSubsystems.database_name).order_by(
+        HcsSubsystems.database_name).all():
+    globalparams.pg_databases.append(row[0])
+for row in db.session.query(HcsSubsystems.subsystem_name).filter(
+        func.lower(HcsSubsystems.database_name) == 'hcshmdb').order_by(HcsSubsystems.subsystem_name).all():
+    globalparams.pg_subsystems.append(row[0])
+
+
 @app.route('/')
 def root():
     return redirect(url_for('login'))
@@ -64,18 +77,6 @@ def login():
                 session['login'] = str(request.form['input-login']).lower()
                 session['user_name'] = str(db.session.query(
                     func.rgbotsm.func_get_user_name(session['login'])).first()[0])
-                globalparams.pg_stands = []
-                globalparams.pg_databases = []
-                globalparams.pg_subsystems = []
-                for row in db.session.query(HcsStands.stand_name).order_by(HcsStands.stand_name).all():
-                    globalparams.pg_stands.append(row[0])
-                for row in db.session.query(HcsSubsystems.database_name).distinct(HcsSubsystems.database_name).order_by(
-                        HcsSubsystems.database_name).all():
-                    globalparams.pg_databases.append(row[0])
-                for row in db.session.query(HcsSubsystems.subsystem_name).filter(
-                        func.lower(HcsSubsystems.database_name) == 'hcshmdb').order_by(
-                    HcsSubsystems.subsystem_name).all():
-                    globalparams.pg_subsystems.append(row[0])
                 return redirect(url_for('create_filter'))
             else:
                 flash('Wrong password!')
