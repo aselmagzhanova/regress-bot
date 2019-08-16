@@ -6,7 +6,6 @@ import jiratask
 import kibana
 from Model import HcsStands, HcsSubsystems, JiraTasks, UserFilters, UserLoginInfo
 from sqlalchemy import func
-import webbrowser
 import yaml
 
 app = Flask(__name__)
@@ -163,9 +162,9 @@ def create_filter_post():
                 globalparams.es_input_data['elastic_time_range'] = [request.form['time-from'], request.form['time-to']]
             link_text = kibana.return_kibana_link(globalparams.es_input_data['elastic_time_range'],
                                                   globalparams.es_input_data['elastic_stand'],
-                                                  globalparams.es_input_data['elastic_database'],
+                                                   globalparams.es_input_data['elastic_database'],
                                                   int(globalparams.es_input_data['elastic_duration']))
-            webbrowser.open_new_tab(link_text)
+            return redirect(link_text)
     return '', 204
 
 
@@ -177,7 +176,10 @@ def search_result():
     pg_data = {}
     for row in db.session.query(JiraTasks.statement_hash, JiraTasks.issue_number).all():
         pg_data[row[0]] = row[1]
-    subsystem = globalparams.es_input_data['elastic_subsystem'][0]
+    if len(globalparams.es_input_data['elastic_subsystem']) is not 0:
+        subsystem = globalparams.es_input_data['elastic_subsystem'][0]
+    else:
+        subsystem = ""
     return render_template('filter_result.html',
                            user_name=session['user_name'],
                            es_output_data=globalparams.es_output_data,
@@ -255,7 +257,7 @@ def search_result_post():
                             globalparams.es_output_data[index]['elastic_query_duration']) + "');"
                     )
                     db.session.commit()
-                    webbrowser.open_new_tab('https://hcs.jira.lanit.ru/browse/' + jira_task_key)
+                    redirect('https://hcs.jira.lanit.ru/browse/' + jira_task_key)
                     return redirect(url_for('search_result'))
                 else:
                     team_lineup['tpm'] = str(db.session.execute(
@@ -310,7 +312,7 @@ def search_result_post():
                                 '" + str(globalparams.es_output_data[index]['elastic_query_duration']) +"');"
                     )
                     db.session.commit()
-                    webbrowser.open_new_tab('https://hcs.jira.lanit.ru/browse/' + jira_task_key)
+                    redirect('https://hcs.jira.lanit.ru/browse/' + jira_task_key)
                     return redirect(url_for('search_result'))
     return '', 204
 
@@ -392,7 +394,7 @@ def jira_issues_post():
             if 'button-reopen-' + str(index) in request.form:
                 issue_number = request.form.get("button-reopen-" + str(index))
                 jiratask.reopen_task(issue_number)
-                webbrowser.open_new_tab('https://hcs.jira.lanit.ru/browse/' + issue_number)
+                redirect('https://hcs.jira.lanit.ru/browse/' + issue_number)
                 # см. строку 27
                 globalparams.jira_issues = db.session.execute(
                     "select hst.stand_name,\
